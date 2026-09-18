@@ -1,4 +1,4 @@
-import { canApplyInventoryEvent, confirmDraft, inventoryBalances, inventoryRecentEvents, inventoryStockPrefill, normalizeUnit, splitRecipeSteps, validateRecipe } from "./domain.js";
+import { canApplyInventoryEvent, confirmDraft, inventoryAdjustmentEvent, inventoryBalances, inventoryConsumeEvents, inventoryRecentEvents, inventoryStockPrefill, normalizeUnit, splitRecipeSteps, validateRecipe } from "./domain.js";
 import { imageObjectURL, saveImage } from "./images.js";
 import { createCloudClient, createCloudSessionStore } from "./cloud.js";
 import { cloudConfig } from "./cloud-config.js";
@@ -11,6 +11,7 @@ import {
   cloudLoginView,
   draftEditor,
   importForm,
+  inventoryConsumeEditor,
   inventoryEditor,
   installGuide,
   inventoryView,
@@ -181,7 +182,12 @@ document.addEventListener("click", (event) => {
     dispatch({ type: "shopping/update", item: { ...item, quantity } });
   }
   if (action === "shopping-delete") dispatch({ type: "shopping/delete", id });
-  if (action === "inventory-new") openModal(inventoryEditor({ type: button.dataset.kind ?? "stock" }));
+  if (action === "inventory-new") {
+    const kind = button.dataset.kind ?? "stock";
+    openModal(kind === "consume"
+      ? inventoryConsumeEditor(inventoryBalances(state.inventoryEvents))
+      : inventoryEditor({ type: kind }));
+  }
   if (action === "inventory-delete" && confirm("确定直接删除这条库存事件吗？")) {
     const countBefore = state.inventoryEvents.length;
     dispatch({ type: "inventory/delete", id });
@@ -267,6 +273,31 @@ document.addEventListener("submit", async (event) => {
     dispatch({ type: "shopping/add", item: { id: crypto.randomUUID(), name: String(form.get("name")).trim(), quantity: Number(form.get("quantity")), unit: normalizeUnit(String(form.get("unit")).trim()), checked: false, source: "manual" } });
     event.target.reset(); return;
   }
+  if (event.target.id === "inventory-consume-form") {
+    event.preventDefault();
+    const form = new FormData(event.target);
+    try {
+      const names = form.getAll("consumeName");
+      const units = form.getAll("consumeUnit");
+      const quantities = form.getAll("consumeQuantity");
+      const balances = inventoryBalances(state.inventoryEvents);
+      const requested = names.map((ingredientName, index) => {
+        const unit = String(units[index] ?? "");
+        const balance = balances.find((item) => item.ingredientName === ingredientName && item.unit === unit);
+        return { ingredientName, unit, quantity: Number(quantities[index]), availableQuantity: balance?.quantity ?? 0 };
+      });
+      const events = inventoryConsumeEvents(requested).map((item) => ({
+        ...item, id: crypto.randomUUID(), createdAt: new Date().toISOString(), batchId: null,
+      }));
+      if (!events.length) { notify("请至少填写一项消耗数量"); return; }
+      dispatch({ type: "inventory/add-events", events });
+      closeModal();
+      notify(`已记录 ${events.length} 项消耗`);
+    } catch (error) {
+      notify(error.message || "消耗数量无效");
+    }
+    return;
+  }
   if (event.target.id === "menu-form") {
     event.preventDefault();
     const form = new FormData(event.target);
@@ -284,7 +315,10 @@ document.addEventListener("submit", async (event) => {
     const expiresAt = type === "stock" && purchaseDate && shelfLifeDays > 0
       ? new Date(new Date(`${purchaseDate}T00:00:00`).getTime() + shelfLifeDays * 86400000).toISOString()
       : undefined;
-    const inventoryEvent = { id: crypto.randomUUID(), type, ingredientName: String(form.get("ingredientName")).trim(), quantity: Number(form.get("quantity")), unit: normalizeUnit(String(form.get("unit")).trim()), purchaseDate, shelfLifeDays: shelfLifeDays || null, expiresAt, batchId: type === "stock" ? crypto.randomUUID() : null, createdAt: new Date().toISOString() };
+    const baseEvent = { id: crypto.randomUUID(), type, ingredientName: String(form.get("ingredientName")).trim(), quantity: Number(form.get("quantity")), unit: normalizeUnit(String(form.get("unit")).trim()), purchaseDate, shelfLifeDays: shelfLifeDays || null, expiresAt, batchId: type === "stock" ? crypto.randomUUID() : null, createdAt: new Date().toISOString() };
+    const inventoryEvent = type === "adjust"
+      ? { ...baseEvent, ...inventoryAdjustmentEvent(state.inventoryEvents, { ingredientName: baseEvent.ingredientName, unit: baseEvent.unit, targetQuantity: form.get("targetQuantity") }) }
+      : baseEvent;
     if (!canApplyInventoryEvent(state.inventoryEvents, inventoryEvent)) { notify("库存不足，不能使食材数量变为负数"); return; }
     dispatch({ type: "inventory/add-event", event: inventoryEvent });
     const shoppingIds = pendingShoppingIds.length ? pendingShoppingIds : [String(form.get("shoppingItemId") || "")];

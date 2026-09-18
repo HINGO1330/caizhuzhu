@@ -69,6 +69,17 @@ export function reduceState(state, action) {
       if (!canApplyInventoryEvent(state.inventoryEvents, event)) return state;
       return { ...state, inventoryEvents: [event, ...state.inventoryEvents] };
     }
+    case "inventory/add-events": {
+      const events = Array.isArray(action.events) ? action.events : [];
+      let workingEvents = state.inventoryEvents;
+      const accepted = [];
+      for (const event of events) {
+        if (!canApplyInventoryEvent(workingEvents, event)) return state;
+        workingEvents = [event, ...workingEvents];
+        accepted.push(event);
+      }
+      return accepted.length ? { ...state, inventoryEvents: [...accepted, ...state.inventoryEvents] } : state;
+    }
     case "inventory/delete": {
       const remaining = state.inventoryEvents.filter((event) => event.id !== action.id);
       return inventoryBalances(remaining).some((item) => item.quantity < 0)

@@ -154,6 +154,29 @@ export function canApplyInventoryEvent(events, event) {
   return (balance?.quantity ?? 0) + delta >= 0;
 }
 
+export function inventoryAdjustmentEvent(events, { ingredientName, unit, targetQuantity }) {
+  const target = Number(targetQuantity);
+  if (!Number.isFinite(target) || target < 0) throw new Error("调整后的库存不能小于零");
+  const balance = inventoryBalances(events).find((item) => keyFor(item.ingredientName, item.unit) === keyFor(ingredientName, unit));
+  return {
+    ingredientName: text(ingredientName),
+    unit: normalizeUnit(unit),
+    quantity: target - (balance?.quantity ?? 0),
+    type: "adjust",
+    targetQuantity: target,
+  };
+}
+
+export function inventoryConsumeEvents(items) {
+  return (items ?? []).flatMap((item) => {
+    const quantity = Number(item.quantity);
+    const availableQuantity = Number(item.availableQuantity);
+    if (!Number.isFinite(quantity) || quantity < 0) throw new Error("消耗数量必须大于或等于零");
+    if (!Number.isFinite(availableQuantity) || quantity > availableQuantity) throw new Error("消耗数量不能超过现有库存");
+    return quantity ? [{ ingredientName: text(item.ingredientName), unit: normalizeUnit(item.unit), quantity, type: "consume" }] : [];
+  });
+}
+
 export function recipePreview(recipes, limit = 4) {
   const visible = (recipes ?? []).slice(0, limit);
   return { recipes: visible, hasMore: (recipes?.length ?? 0) > visible.length };

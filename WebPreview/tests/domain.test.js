@@ -11,6 +11,8 @@ import {
   inventoryStockPrefill,
   normalizeUnit,
   canApplyInventoryEvent,
+  inventoryAdjustmentEvent,
+  inventoryConsumeEvents,
   recipePreview,
   splitRecipeSteps,
   validateRecipe,
@@ -108,6 +110,29 @@ test("inventory rejects a consume or adjustment that would make a balance negati
   assert.equal(canApplyInventoryEvent(events, { ingredientName: "鸡蛋", unit: "个", quantity: 3, type: "consume" }), false);
   assert.equal(canApplyInventoryEvent(events, { ingredientName: "鸡蛋", unit: "个", quantity: -3, type: "adjust" }), false);
   assert.equal(canApplyInventoryEvent(events, { ingredientName: "鸡蛋", unit: "个", quantity: 2, type: "consume" }), true);
+});
+
+test("inventory adjustment converts a target balance into the required signed event delta", () => {
+  const events = [
+    { ingredientName: "鸡蛋", unit: "个", quantity: 10, type: "stock" },
+    { ingredientName: "鸡蛋", unit: "个", quantity: 3, type: "consume" },
+  ];
+
+  assert.deepEqual(inventoryAdjustmentEvent(events, { ingredientName: "鸡蛋", unit: "个", targetQuantity: 4 }), {
+    ingredientName: "鸡蛋", unit: "个", quantity: -3, type: "adjust", targetQuantity: 4,
+  });
+});
+
+test("bulk consumption creates one consume event per positive requested balance without exceeding stock", () => {
+  assert.deepEqual(inventoryConsumeEvents([
+    { ingredientName: "鸡蛋", unit: "个", availableQuantity: 3, quantity: 2 },
+    { ingredientName: "食用油", unit: "毫升", availableQuantity: 20, quantity: 0 },
+  ]), [
+    { ingredientName: "鸡蛋", unit: "个", quantity: 2, type: "consume" },
+  ]);
+  assert.throws(() => inventoryConsumeEvents([
+    { ingredientName: "鸡蛋", unit: "个", availableQuantity: 3, quantity: 4 },
+  ]), /不能超过现有库存/);
 });
 
 test("recipe preview limits the home page and exposes the rest for the dialog", () => {

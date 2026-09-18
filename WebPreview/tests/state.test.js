@@ -73,3 +73,23 @@ test("archiving an inventory event preserves it but removes it from the active s
   const restored = reduceState(archived, { type: "inventory/unarchive", id: "e1" });
   assert.equal(restored.inventoryEvents[0].archived, false);
 });
+
+test("bulk consumption records every requested inventory item in one state change", () => {
+  const state = {
+    ...emptyState,
+    inventoryEvents: [
+      { id: "stock-eggs", type: "stock", ingredientName: "鸡蛋", quantity: 3, unit: "个" },
+      { id: "stock-oil", type: "stock", ingredientName: "食用油", quantity: 20, unit: "毫升" },
+    ],
+  };
+  const next = reduceState(state, {
+    type: "inventory/add-events",
+    events: [
+      { id: "use-eggs", type: "consume", ingredientName: "鸡蛋", quantity: 2, unit: "个" },
+      { id: "use-oil", type: "consume", ingredientName: "食用油", quantity: 20, unit: "毫升" },
+    ],
+  });
+
+  assert.equal(next.inventoryEvents.length, 4);
+  assert.deepEqual(next.inventoryEvents.slice(0, 2).map((event) => event.id), ["use-eggs", "use-oil"]);
+});
