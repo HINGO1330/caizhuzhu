@@ -127,9 +127,11 @@ export function shoppingView(state) {
     groups.set(key, current);
   }
   const displayItems = [...groups.values()];
+  const pendingItems = displayItems.filter((item) => !item.checked);
   return `<main class="screen"><span class="eyebrow">买齐再开火</span><h2 class="screen-title">采购清单</h2><p class="screen-lede">今日菜单会自动生成采购项，也可以随手补上一项。</p>
     <form id="shopping-form" class="inline-form"><input name="name" required placeholder="添加采购项"><input name="quantity" type="number" step="0.1" min="0.1" value="1" aria-label="数量"><input name="unit" placeholder="单位" aria-label="单位"><button class="primary">添加</button></form>
-    <div class="section-heading"><h2>待采购</h2><span>${displayItems.filter((item) => !item.checked).length} 项</span></div>
+    <div class="section-heading"><h2>待采购</h2><span>${pendingItems.length} 项</span></div>
+    ${pendingItems.length ? `<button class="secondary" style="width:100%;margin-bottom:12px" data-action="shopping-stock-many">批量入库</button>` : ""}
     <section class="check-list">${displayItems.length ? displayItems.map((item) => `<div class="check-row ${item.checked ? "done" : ""}"><button class="check-button" data-action="shopping-toggle-group" data-ids="${item.ids.join(",")}" aria-label="${item.checked ? "取消勾选" : "勾选"}">${item.checked ? "✓" : ""}</button><span>${escapeHTML(item.name)}</span><div class="quantity-controls"><button data-action="shopping-adjust-group" data-ids="${item.ids.join(",")}" data-delta="-1">−</button><strong>${item.quantity} ${escapeHTML(item.unit)}</strong><button data-action="shopping-adjust-group" data-ids="${item.ids.join(",")}" data-delta="1">＋</button></div><button class="row-delete" data-action="shopping-delete-group" data-ids="${item.ids.join(",")}" aria-label="删除">×</button></div>`).join("") : `<div class="empty">清单还是空的。请先从菜谱加入今日菜单，或手动添加采购项。</div>`}</section>
   </main>`;
 }
@@ -174,6 +176,10 @@ export function inventoryEditor(prefill = {}) {
 export function inventoryConsumeEditor(balances) {
   const items = (balances ?? []).filter((item) => Number(item.quantity) > 0);
   return `<form id="inventory-consume-form"><div class="modal-head"><h2 id="modal-title">批量记录消耗</h2><button type="button" class="icon-button" data-action="modal-close">×</button></div><div class="modal-body"><p class="screen-lede">默认消耗全部现有库存；可逐项输入或用数字框箭头调整数量。</p><div class="consume-list">${items.map((item) => `<div class="ingredient-entry"><input type="hidden" name="consumeName" value="${escapeHTML(item.ingredientName)}"><input type="hidden" name="consumeUnit" value="${escapeHTML(item.unit)}"><span>${escapeHTML(item.ingredientName)}<small>现有 ${item.quantity} ${escapeHTML(item.unit)}</small></span><input name="consumeQuantity" type="number" min="0" step="0.1" value="${item.quantity}" max="${item.quantity}" aria-label="${escapeHTML(item.ingredientName)} 消耗数量"></div>`).join("") || `<div class="empty">当前没有可消耗的库存。</div>`}</div><div class="modal-actions"><button type="button" class="quiet" data-action="modal-close">取消</button><button class="primary" ${items.length ? "" : "disabled"}>确认批量消耗</button></div></div></form>`;
+}
+
+export function inventoryBatchStockEditor(items) {
+  return `<form id="inventory-batch-stock-form"><div class="modal-head"><h2 id="modal-title">批量入库</h2><button type="button" class="icon-button" data-action="modal-close">×</button></div><div class="modal-body"><p class="screen-lede">食材、数量和单位已从采购清单带入，请逐项填写保质期。</p><div class="consume-list">${(items ?? []).map((item) => `<div class="ingredient-entry"><input type="hidden" name="stockIngredientName" value="${escapeHTML(item.ingredientName)}"><input type="hidden" name="stockUnit" value="${escapeHTML(item.unit)}"><input type="hidden" name="stockQuantity" value="${item.quantity}"><input type="hidden" name="stockShoppingIds" value="${item.shoppingItemIds.join(",")}"><span>${escapeHTML(item.ingredientName)}<small>${item.quantity} ${escapeHTML(item.unit)}</small></span><input name="shelfLifeDays" type="number" min="1" step="1" required placeholder="保质期（天）" aria-label="${escapeHTML(item.ingredientName)} 保质期"></div>`).join("") || `<div class="empty">没有待入库的采购项。</div>`}</div><div class="modal-actions"><button type="button" class="quiet" data-action="modal-close">取消</button><button class="primary" ${(items ?? []).length ? "" : "disabled"}>确认批量入库</button></div></div></form>`;
 }
 
 export function systemSimulatorView() {

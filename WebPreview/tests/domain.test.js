@@ -9,6 +9,7 @@ import {
   inventoryCountdown,
   inventoryRecentEvents,
   inventoryStockPrefill,
+  inventoryStockPrefills,
   normalizeUnit,
   canApplyInventoryEvent,
   inventoryAdjustmentEvent,
@@ -95,6 +96,17 @@ test("checked shopping items create a bound stock-in prefill", () => {
     unit: "个",
     shoppingItemIds: ["s1", "s2"],
   });
+});
+
+test("batch stock-in groups equivalent pending shopping items while retaining every source item", () => {
+  assert.deepEqual(inventoryStockPrefills([
+    { id: "s1", name: "牛肉丸", quantity: 2, unit: "颗" },
+    { id: "s2", name: "牛肉丸", quantity: 3, unit: "个" },
+    { id: "s3", name: "青菜", quantity: 1, unit: "把" },
+  ]), [
+    { ingredientName: "牛肉丸", quantity: 5, unit: "个", shoppingItemIds: ["s1", "s2"] },
+    { ingredientName: "青菜", quantity: 1, unit: "把", shoppingItemIds: ["s3"] },
+  ]);
 });
 
 test("recent inventory events exclude archived records and cap the visible list", () => {

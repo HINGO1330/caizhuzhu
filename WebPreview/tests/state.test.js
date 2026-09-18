@@ -93,3 +93,17 @@ test("bulk consumption records every requested inventory item in one state chang
   assert.equal(next.inventoryEvents.length, 4);
   assert.deepEqual(next.inventoryEvents.slice(0, 2).map((event) => event.id), ["use-eggs", "use-oil"]);
 });
+
+test("batch stock-in marks every linked shopping item as completed together", () => {
+  const state = {
+    ...emptyState,
+    shoppingItems: [
+      { id: "s1", name: "牛肉丸", checked: false },
+      { id: "s2", name: "牛肉丸", checked: false },
+      { id: "s3", name: "青菜", checked: false },
+    ],
+  };
+  const next = reduceState(state, { type: "shopping/mark-checked", ids: ["s1", "s2"] });
+
+  assert.deepEqual(next.shoppingItems.map((item) => item.checked), [true, true, false]);
+});

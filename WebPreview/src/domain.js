@@ -143,6 +143,20 @@ export function inventoryStockPrefill(items) {
   };
 }
 
+export function inventoryStockPrefills(items) {
+  const groups = new Map();
+  for (const item of items ?? []) {
+    if (!text(item.name) || !positiveNumber(item.quantity)) continue;
+    const unit = normalizeUnit(item.unit);
+    const key = keyFor(item.name, unit);
+    const current = groups.get(key) ?? { ingredientName: text(item.name), quantity: 0, unit, shoppingItemIds: [] };
+    current.quantity += Number(item.quantity);
+    current.shoppingItemIds.push(item.id);
+    groups.set(key, current);
+  }
+  return [...groups.values()];
+}
+
 export function inventoryRecentEvents(events, limit = 5) {
   return (events ?? []).filter((event) => !event.archived).slice(0, limit);
 }

@@ -56,6 +56,10 @@ export function reduceState(state, action) {
         ...state,
         shoppingItems: state.shoppingItems.map((item) => item.id === action.item.id ? action.item : item),
       };
+    case "shopping/mark-checked": {
+      const ids = new Set(action.ids ?? []);
+      return { ...state, shoppingItems: state.shoppingItems.map((item) => ids.has(item.id) ? { ...item, checked: true } : item) };
+    }
     case "shopping/delete":
       return { ...state, shoppingItems: state.shoppingItems.filter((item) => item.id !== action.id) };
     case "inventory/add-event": {

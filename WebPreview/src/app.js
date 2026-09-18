@@ -1,4 +1,4 @@
-import { canApplyInventoryEvent, confirmDraft, inventoryAdjustmentEvent, inventoryBalances, inventoryConsumeEvents, inventoryRecentEvents, inventoryStockPrefill, normalizeUnit, splitRecipeSteps, validateRecipe } from "./domain.js";
+import { canApplyInventoryEvent, confirmDraft, inventoryAdjustmentEvent, inventoryBalances, inventoryConsumeEvents, inventoryRecentEvents, inventoryStockPrefill, inventoryStockPrefills, normalizeUnit, splitRecipeSteps, validateRecipe } from "./domain.js";
 import { imageObjectURL, saveImage } from "./images.js";
 import { createCloudClient, createCloudSessionStore } from "./cloud.js";
 import { cloudConfig } from "./cloud-config.js";
@@ -12,6 +12,7 @@ import {
   draftEditor,
   importForm,
   inventoryConsumeEditor,
+  inventoryBatchStockEditor,
   inventoryEditor,
   installGuide,
   inventoryView,
@@ -169,6 +170,9 @@ document.addEventListener("click", (event) => {
       openModal(inventoryEditor({ ...prefill, type: "stock", shoppingItemId: ids[0], purchaseDate: new Date().toISOString().slice(0, 10) }));
     }
   }
+  if (action === "shopping-stock-many") {
+    openModal(inventoryBatchStockEditor(inventoryStockPrefills(state.shoppingItems.filter((item) => !item.checked))));
+  }
   if (action === "shopping-adjust-group") {
     const first = state.shoppingItems.find((item) => item.id === button.dataset.ids.split(",")[0]);
     if (first) dispatch({ type: "shopping/update", item: { ...first, quantity: Math.max(0, Number(first.quantity) + Number(button.dataset.delta)) } });
@@ -295,6 +299,36 @@ document.addEventListener("submit", async (event) => {
       notify(`已记录 ${events.length} 项消耗`);
     } catch (error) {
       notify(error.message || "消耗数量无效");
+    }
+    return;
+  }
+  if (event.target.id === "inventory-batch-stock-form") {
+    event.preventDefault();
+    const form = new FormData(event.target);
+    try {
+      const names = form.getAll("stockIngredientName");
+      const units = form.getAll("stockUnit");
+      const quantities = form.getAll("stockQuantity");
+      const shoppingIds = form.getAll("stockShoppingIds");
+      const shelfLives = form.getAll("shelfLifeDays");
+      const purchaseDate = new Date().toISOString().slice(0, 10);
+      const events = names.map((ingredientName, index) => {
+        const shelfLifeDays = Number(shelfLives[index]);
+        if (!Number.isInteger(shelfLifeDays) || shelfLifeDays <= 0) throw new Error("请为每项食材填写有效的保质期");
+        const expiresAt = new Date(new Date(`${purchaseDate}T00:00:00`).getTime() + shelfLifeDays * 86400000).toISOString();
+        return {
+          id: crypto.randomUUID(), type: "stock", ingredientName: String(ingredientName), quantity: Number(quantities[index]), unit: normalizeUnit(String(units[index])),
+          purchaseDate, shelfLifeDays, expiresAt, batchId: crypto.randomUUID(), createdAt: new Date().toISOString(),
+        };
+      });
+      if (!events.length) { notify("没有可入库的采购项"); return; }
+      dispatch({ type: "inventory/add-events", events });
+      const completedIds = shoppingIds.flatMap((ids) => String(ids).split(",").filter(Boolean));
+      dispatch({ type: "shopping/mark-checked", ids: completedIds });
+      closeModal();
+      notify(`已批量入库 ${events.length} 项`);
+    } catch (error) {
+      notify(error.message || "批量入库失败");
     }
     return;
   }
