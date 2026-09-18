@@ -42,6 +42,7 @@ test("batch stock-in editor shows every pending ingredient and only asks for she
   assert.match(view, /牛肉丸/);
   assert.match(view, /青菜/);
   assert.equal((view.match(/name="shelfLifeDays"/g) ?? []).length, 2);
+  assert.equal((view.match(/name="shelfLifeDays"[^>]*value="3"/g) ?? []).length, 2);
   assert.doesNotMatch(view, /name="purchaseDate"/);
 });
 
