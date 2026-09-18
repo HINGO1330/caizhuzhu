@@ -191,7 +191,7 @@ export function menuServingPicker(recipe) {
 }
 
 export function settingsView() {
-  return `<div class="modal-head"><h2 id="modal-title">数据与演示</h2><button class="icon-button" data-action="modal-close" aria-label="关闭">×</button></div><div class="modal-body"><p class="screen-lede">所有数据只保存在这个浏览器。可以导出备份、恢复或重置演示内容。</p><div class="settings-actions"><button class="secondary" data-action="install-guide">安装到手机</button><button class="secondary" data-action="data-export">导出 JSON</button><label class="quiet file-label">导入 JSON<input id="backup-file" type="file" accept="application/json"></label><button class="danger" data-action="data-reset">重置演示数据</button></div><div class="modal-actions"><button class="quiet" data-action="modal-close">完成</button></div></div>`;
+  return `<div class="modal-head"><h2 id="modal-title">数据与备份</h2><button class="icon-button" data-action="modal-close" aria-label="关闭">×</button></div><div class="modal-body"><p class="screen-lede">所有数据只保存在这个浏览器。请定期导出 JSON 备份；导入备份会替换当前浏览器内的数据。</p><div class="settings-actions"><button class="secondary" data-action="install-guide">安装到手机</button><button class="secondary" data-action="data-export">导出 JSON</button><label class="quiet file-label">导入 JSON<input id="backup-file" type="file" accept="application/json"></label></div><div class="modal-actions"><button class="quiet" data-action="modal-close">完成</button></div></div>`;
 }
 
 export function installGuide(instruction) {

@@ -1,7 +1,7 @@
 import { canApplyInventoryEvent, confirmDraft, inventoryBalances, inventoryRecentEvents, inventoryStockPrefill, normalizeUnit, splitRecipeSteps, validateRecipe } from "./domain.js";
 import { imageObjectURL, saveImage } from "./images.js";
 import { installInstructionsFor } from "./install.js";
-import { exportState, importState, loadState, resetState, saveState } from "./storage.js";
+import { exportState, importState, loadState, saveState } from "./storage.js";
 import { reduceState } from "./state.js";
 import {
   appView,
@@ -168,9 +168,6 @@ document.addEventListener("click", (event) => {
   if (action === "shortcut-shopping") { closeModal(); ui = { tab: "shopping", recipeId: null, cooking: null }; render(); }
   if (action === "shortcut-cooking") { closeModal(); ui = { tab: "recipes", recipeId: null, cooking: null }; render(); notify("请选择一道菜开始烹饪"); }
   if (action === "data-export") downloadBackup();
-  if (action === "data-reset" && confirm("确定清除当前浏览器数据并恢复演示内容吗？")) {
-    state = resetState(); ui = { tab: "recipes", recipeId: null, cooking: null, selectedCategory: "全部" }; closeModal(); render(); notify("演示数据已恢复");
-  }
 });
 
 document.addEventListener("submit", async (event) => {
