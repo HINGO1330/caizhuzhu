@@ -1,11 +1,11 @@
-const CACHE = "caizhuzhu-pwa-v4";
+const CACHE = "caizhuzhu-pwa-v5";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
   "./favicon.svg",
-  "./icon-192.png",
-  "./icon-512.png",
+  "./icon-192-v2.png",
+  "./apple-touch-icon-v2.png",
   "./manifest.webmanifest",
   "./src/app.js",
   "./src/domain.js",
