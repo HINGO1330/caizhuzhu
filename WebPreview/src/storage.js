@@ -65,12 +65,6 @@ export function saveState(storage = localStorage, state) {
   storage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-export function resetState(storage = localStorage) {
-  const state = demoState();
-  saveState(storage, state);
-  return state;
-}
-
 export function exportState(state) {
   return JSON.stringify(state, null, 2);
 }
