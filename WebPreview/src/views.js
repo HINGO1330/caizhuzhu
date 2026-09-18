@@ -150,7 +150,10 @@ export function inventoryView(state, balances, recentEvents) {
 }
 
 function eventRow(event) {
-  return `<div class="event-row"><span class="event-icon ${event.type}">${event.type === "stock" ? "+" : event.type === "consume" ? "−" : "±"}</span><div><strong>${escapeHTML(event.ingredientName)}</strong><small>${event.type === "stock" ? "入库" : event.type === "consume" ? "消耗" : "调整"} · ${new Date(event.createdAt).toLocaleString("zh-CN")}${event.expiresAt ? ` · <span class="expiry">${escapeHTML(countdownLabel(event.expiresAt))}</span>` : ""}</small></div><b>${event.quantity} ${escapeHTML(event.unit)}</b><div class="event-actions">${!event.archived ? `<button class="row-delete" data-action="inventory-delete" data-id="${event.id}" aria-label="删除记录">删除</button><button class="row-delete" data-action="inventory-archive" data-id="${event.id}" aria-label="归档记录">归档</button>` : ""}</div></div>`;
+  const amount = event.type === "adjust" && Number.isFinite(Number(event.targetQuantity))
+    ? `调整至 ${event.targetQuantity} ${escapeHTML(event.unit)}`
+    : `${event.quantity} ${escapeHTML(event.unit)}`;
+  return `<div class="event-row"><span class="event-icon ${event.type}">${event.type === "stock" ? "+" : event.type === "consume" ? "−" : "±"}</span><div><strong>${escapeHTML(event.ingredientName)}</strong><small>${event.type === "stock" ? "入库" : event.type === "consume" ? "消耗" : "调整"} · ${new Date(event.createdAt).toLocaleString("zh-CN")}${event.expiresAt ? ` · <span class="expiry">${escapeHTML(countdownLabel(event.expiresAt))}</span>` : ""}</small></div><b>${amount}</b><div class="event-actions">${!event.archived ? `<button class="row-delete" data-action="inventory-delete" data-id="${event.id}" aria-label="删除记录">删除</button><button class="row-delete" data-action="inventory-archive" data-id="${event.id}" aria-label="归档记录">归档</button>` : ""}</div></div>`;
 }
 
 function countdownLabel(expiresAt) {
