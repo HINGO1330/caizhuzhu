@@ -62,6 +62,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .nav-item span:first-child { font-size: 20px; }
 .ingredient-entry { display: grid; grid-template-columns: 1.4fr .8fr .8fr auto; gap: 8px; margin-top: 8px; }
 .ingredient-entry input { min-width: 0; }
+.step-tools { margin-top: -8px; }
+.step-preview { margin-top: 10px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--white); }
+.step-preview ol { margin: 8px 0; padding-left: 22px; }
+.step-preview li { margin: 5px 0; line-height: 1.5; }
 .field-label-row { display:flex; align-items:center; justify-content:space-between; font-weight:700; }
 .browse-recipes { width:100%; margin-top:14px; }
 .inventory-actions { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:14px; }

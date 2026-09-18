@@ -1,0 +1,16 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "caizhuzhu-ai-step-organizer",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-09-18",
+  "vars": {
+    "ALLOWED_ORIGIN": "https://hingo1330.github.io",
+    "SUPABASE_URL": "https://fajyyyokeclebzuhoowz.supabase.co",
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_VTWE8v7K6eJIO1BkLpSE7w_sskGOb-k",
+    "OPENAI_MODEL": "REPLACE_WITH_LOW_COST_TEXT_MODEL",
+    "DAILY_LIMIT": "10"
+  },
+  "kv_namespaces": [
+    { "binding": "AI_USAGE", "id": "REPLACE_WITH_KV_NAMESPACE_ID" }
+  ]
+}

@@ -6,3 +6,6 @@ __pycache__/
 DerivedData/
 xcuserdata/
 *.xcuserstate
+.dev.vars*
+.env
+.env.*

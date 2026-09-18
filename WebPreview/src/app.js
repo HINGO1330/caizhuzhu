@@ -1,4 +1,6 @@
 import { canApplyInventoryEvent, confirmDraft, inventoryAdjustmentEvent, inventoryBalances, inventoryConsumeEvents, inventoryRecentEvents, inventoryStockPrefill, inventoryStockPrefills, normalizeUnit, splitRecipeSteps, validateRecipe } from "./domain.js";
+import { createStepOrganizerClient } from "./ai.js";
+import { aiConfig } from "./ai-config.js";
 import { imageObjectURL, saveImage } from "./images.js";
 import { createCloudClient, createCloudSessionStore } from "./cloud.js";
 import { cloudConfig } from "./cloud-config.js";
@@ -22,6 +24,7 @@ import {
   recipeEditor,
   recipesView,
   settingsView,
+  stepPreview,
   shoppingView,
   systemSimulatorView,
 } from "./views.js";
@@ -32,9 +35,11 @@ const toast = document.querySelector("#toast");
 let state = loadState();
 let ui = { tab: "recipes", recipeId: null, cooking: null, selectedCategory: "全部" };
 let pendingShoppingIds = [];
+let suggestedSteps = [];
 const cloud = createCloudClient(cloudConfig);
 const cloudSessions = createCloudSessionStore();
 let cloudSession = cloudSessions.load();
+const aiOrganizer = createStepOrganizerClient(aiConfig);
 
 function dispatch(action) {
   state = reduceState(state, action);
@@ -93,6 +98,29 @@ function openModal(content) {
 function closeModal() {
   modal.close();
   modal.innerHTML = "";
+  suggestedSteps = [];
+}
+
+function stepInput() {
+  return modal.querySelector('#recipe-form textarea[name="steps"]');
+}
+
+function renderStepPreview(source) {
+  const preview = modal.querySelector("#steps-preview");
+  if (preview) preview.innerHTML = stepPreview(suggestedSteps, source);
+}
+
+async function organizeStepsWithAI() {
+  const input = stepInput();
+  if (!input) return;
+  try {
+    const session = await activeCloudSession();
+    suggestedSteps = await aiOrganizer.organize(input.value, session?.access_token);
+    renderStepPreview("ai");
+    notify("智能整理完成，请检查后再采用");
+  } catch (error) {
+    notify(error.message || "智能整理暂时不可用");
+  }
 }
 
 function notify(message) {
@@ -119,6 +147,19 @@ document.addEventListener("click", (event) => {
     if (list) { list.insertAdjacentHTML("beforeend", `<div class="ingredient-entry"><input name="ingredientName" required placeholder="名称"><input name="ingredientQuantity" required type="number" min="0.01" step="0.01" placeholder="数量"><input name="ingredientUnit" required placeholder="单位"><button type="button" class="row-delete" data-action="ingredient-remove" aria-label="删除食材">×</button></div>`); }
   }
   if (action === "ingredient-remove") { button.closest(".ingredient-entry")?.remove(); }
+  if (action === "steps-preview-local") {
+    const input = stepInput();
+    suggestedSteps = splitRecipeSteps(input?.value ?? "");
+    renderStepPreview("local");
+  }
+  if (action === "steps-apply-preview") {
+    const input = stepInput();
+    if (input && suggestedSteps.length) {
+      input.value = suggestedSteps.map((step, index) => `${index + 1}. ${step}`).join("\n");
+      notify("步骤草稿已填入，可继续编辑");
+    }
+  }
+  if (action === "steps-ai-organize") void organizeStepsWithAI();
   if (action === "tag-add") {
     const value = prompt("输入一个自定义标签");
     if (value?.trim()) {

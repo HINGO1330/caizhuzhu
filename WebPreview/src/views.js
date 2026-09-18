@@ -194,10 +194,17 @@ export function recipeEditor(recipe = {}, customTags = []) {
     <label class="field">名称<input name="name" required maxlength="60" value="${escapeHTML(recipe.name ?? "")}" placeholder="例如：番茄炒蛋"></label>
     <label class="field">简介<textarea name="summary" placeholder="这道菜有什么特别？">${escapeHTML(recipe.summary ?? "")}</textarea></label>
     <div class="ingredient-editor"><div class="field-label-row"><span>食材</span><button type="button" class="quiet" data-action="ingredient-add">＋ 添加食材</button></div><div id="ingredient-list">${ingredientRows}</div></div>
-    <label class="field">步骤 <span class="form-note">可直接粘贴一整段文字，保存时自动拆分</span><textarea name="steps" rows="6" placeholder="例如：1. 鸡蛋打散；2. 番茄切块；3. 入锅翻炒">${escapeHTML((recipe.steps ?? []).map((step) => step.text).join("；"))}</textarea></label>
+    <label class="field">步骤 <span class="form-note">可直接粘贴一整段文字，先预览本地拆分；不满意时再使用智能整理</span><textarea name="steps" rows="6" placeholder="例如：1. 鸡蛋打散；2. 番茄切块；3. 入锅翻炒">${escapeHTML((recipe.steps ?? []).map((step) => step.text).join("；"))}</textarea></label>
+    <div class="step-tools"><button type="button" class="quiet" data-action="steps-preview-local">预览步骤</button><div id="steps-preview"></div></div>
     <label class="field">图片或长截图<input name="images" type="file" accept="image/*" multiple><span class="form-note">${recipe.imageKeys?.length ? `已保存 ${recipe.imageKeys.length} 张，可继续添加` : "可选单张或多张图片"}</span></label>
     <label class="field">标签<select name="tags" multiple size="3">${tagOptions.map((tag) => `<option value="${escapeHTML(tag)}" ${selectedTags.has(tag) ? "selected" : ""}>${escapeHTML(tag)}</option>`).join("")}</select><button type="button" class="quiet" data-action="tag-add">＋ 添加自定义标签</button></label>
   </div><div class="modal-actions"><button type="button" class="quiet" data-action="modal-close">取消</button><button class="primary" type="submit">保存菜谱</button></div></div></form>`;
+}
+
+export function stepPreview(steps, source = "local") {
+  const title = source === "ai" ? "智能整理预览" : "本地拆分预览";
+  const items = (steps ?? []).filter(Boolean);
+  return `<section class="step-preview"><strong>${title}</strong>${items.length ? `<ol>${items.map((step) => `<li>${escapeHTML(step)}</li>`).join("")}</ol>` : `<p class="form-note">没有识别到可用步骤，请补充原文后重试。</p>`}<div class="modal-actions"><button type="button" class="quiet" data-action="steps-apply-preview" ${items.length ? "" : "disabled"}>采用此结果</button><button type="button" class="secondary" data-action="steps-ai-organize">智能整理</button></div></section>`;
 }
 
 function ingredientRow(item = {}) {
