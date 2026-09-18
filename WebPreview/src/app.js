@@ -1,11 +1,14 @@
 import { canApplyInventoryEvent, confirmDraft, inventoryBalances, inventoryRecentEvents, inventoryStockPrefill, normalizeUnit, splitRecipeSteps, validateRecipe } from "./domain.js";
 import { imageObjectURL, saveImage } from "./images.js";
+import { createCloudClient, createCloudSessionStore } from "./cloud.js";
+import { cloudConfig } from "./cloud-config.js";
 import { installInstructionsFor } from "./install.js";
 import { exportState, importState, loadState, saveState } from "./storage.js";
 import { reduceState } from "./state.js";
 import {
   appView,
   cookingView,
+  cloudLoginView,
   draftEditor,
   importForm,
   inventoryEditor,
@@ -27,11 +30,33 @@ const toast = document.querySelector("#toast");
 let state = loadState();
 let ui = { tab: "recipes", recipeId: null, cooking: null, selectedCategory: "全部" };
 let pendingShoppingIds = [];
+const cloud = createCloudClient(cloudConfig);
+const cloudSessions = createCloudSessionStore();
+let cloudSession = cloudSessions.load();
 
 function dispatch(action) {
   state = reduceState(state, action);
   saveState(localStorage, state);
+  void syncCloudState();
   render();
+}
+
+async function activeCloudSession() {
+  if (!cloudSession?.access_token) return null;
+  if (!cloudSession.expires_at || cloudSession.expires_at * 1000 > Date.now() + 60_000) return cloudSession;
+  if (!cloudSession.refresh_token) return null;
+  cloudSession = await cloud.refreshSession(cloudSession.refresh_token);
+  cloudSessions.save(cloudSession);
+  return cloudSession;
+}
+
+async function syncCloudState() {
+  try {
+    const session = await activeCloudSession();
+    if (session) await cloud.saveState(session.access_token, state);
+  } catch {
+    // 保留本地数据，下一次操作或刷新会再次尝试同步。
+  }
 }
 
 function render() {
@@ -111,6 +136,7 @@ document.addEventListener("click", (event) => {
   }
   if (action === "modal-close") { pendingShoppingIds = []; closeModal(); }
   if (action === "settings") openModal(settingsView());
+  if (action === "cloud-account") openModal(cloudLoginView());
   if (action === "install-guide") openModal(installGuide(installInstructionsFor(navigator.userAgent)));
   if (action === "import-open") openModal(importForm(button.dataset.kind));
   if (action === "draft-open") openModal(draftEditor(state.drafts.find((draft) => draft.id === id)));
@@ -171,6 +197,30 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("submit", async (event) => {
+  if (event.target.id === "cloud-login-form") {
+    event.preventDefault();
+    const form = new FormData(event.target);
+    try {
+      const session = await cloud.signIn(String(form.get("email") ?? "").trim(), String(form.get("password") ?? ""));
+      if (!session.access_token) throw new Error("登录失败");
+      cloudSession = session;
+      cloudSessions.save(session);
+      const remoteState = await cloud.fetchState(session.access_token);
+      if (remoteState) {
+        state = importState(JSON.stringify(remoteState));
+        saveState(localStorage, state);
+        notify("已恢复共享账号的云端数据");
+      } else {
+        await cloud.saveState(session.access_token, state);
+        notify("共享账号已登录，当前数据已备份");
+      }
+      closeModal();
+      render();
+    } catch (error) {
+      notify(error.message || "登录或同步失败，请检查账号、密码和云端配置");
+    }
+    return;
+  }
   if (event.target.id === "import-form") {
     event.preventDefault();
     const form = new FormData(event.target);

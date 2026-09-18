@@ -191,7 +191,11 @@ export function menuServingPicker(recipe) {
 }
 
 export function settingsView() {
-  return `<div class="modal-head"><h2 id="modal-title">数据与备份</h2><button class="icon-button" data-action="modal-close" aria-label="关闭">×</button></div><div class="modal-body"><p class="screen-lede">所有数据只保存在这个浏览器。请定期导出 JSON 备份；导入备份会替换当前浏览器内的数据。</p><div class="settings-actions"><button class="secondary" data-action="install-guide">安装到手机</button><button class="secondary" data-action="data-export">导出 JSON</button><label class="quiet file-label">导入 JSON<input id="backup-file" type="file" accept="application/json"></label></div><div class="modal-actions"><button class="quiet" data-action="modal-close">完成</button></div></div>`;
+  return `<div class="modal-head"><h2 id="modal-title">数据与备份</h2><button class="icon-button" data-action="modal-close" aria-label="关闭">×</button></div><div class="modal-body"><p class="screen-lede">未登录时，数据只保存在这个浏览器。登录共享账号后，菜谱、菜单、采购和库存会自动备份到云端。</p><div class="settings-actions"><button class="secondary" data-action="cloud-account">共享账号云备份</button><button class="secondary" data-action="install-guide">安装到手机</button><button class="secondary" data-action="data-export">导出 JSON</button><label class="quiet file-label">导入 JSON<input id="backup-file" type="file" accept="application/json"></label></div><div class="modal-actions"><button class="quiet" data-action="modal-close">完成</button></div></div>`;
+}
+
+export function cloudLoginView() {
+  return `<form id="cloud-login-form"><div class="modal-head"><h2 id="modal-title">共享账号云备份</h2><button type="button" class="icon-button" data-action="modal-close" aria-label="关闭">×</button></div><div class="modal-body"><p class="screen-lede">两台设备使用同一邮箱和密码即可共享同一份厨房数据。</p><div class="form-grid"><label class="field">共享邮箱<input name="email" type="email" autocomplete="email" required placeholder="kitchen@example.com"></label><label class="field">密码<input name="password" type="password" autocomplete="current-password" minlength="8" required placeholder="至少 8 位"></label></div><p class="form-note">首次使用请先在 Supabase 后台创建此账号；登录后会先从云端恢复数据，再自动同步后续变更。</p><div class="modal-actions"><button type="button" class="quiet" data-action="modal-close">取消</button><button class="primary">登录并同步</button></div></div></form>`;
 }
 
 export function installGuide(instruction) {
