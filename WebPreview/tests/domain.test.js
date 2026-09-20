@@ -15,6 +15,8 @@ import {
   inventoryAdjustmentEvent,
   inventoryConsumeEvents,
   recipePreview,
+  inventoryExpiringBatches,
+  inventoryRecipeRecommendations,
   splitRecipeSteps,
   validateRecipe,
 } from "../src/domain.js";
@@ -163,4 +165,36 @@ test("recipe preview limits the home page and exposes the rest for the dialog", 
   const preview = recipePreview([{ id: "r1" }, { id: "r2" }, { id: "r3" }], 2);
   assert.deepEqual(preview.recipes.map((recipe) => recipe.id), ["r1", "r2"]);
   assert.equal(preview.hasMore, true);
+});
+
+test("expiring batches exclude what has already been consumed and surface the nearest expiry first", () => {
+  const events = [
+    { id: "egg-batch", batchId: "egg-batch", type: "stock", ingredientName: "鸡蛋", quantity: 6, unit: "个", expiresAt: "2026-09-22T00:00:00.000Z" },
+    { id: "tomato-batch", batchId: "tomato-batch", type: "stock", ingredientName: "番茄", quantity: 2, unit: "个", expiresAt: "2026-09-25T00:00:00.000Z" },
+    { id: "eat-egg", batchId: "egg-batch", type: "consume", ingredientName: "鸡蛋", quantity: 4, unit: "个" },
+  ];
+
+  assert.deepEqual(inventoryExpiringBatches(events, 3, new Date("2026-09-20T00:00:00.000Z")), [
+    { batchId: "egg-batch", ingredientName: "鸡蛋", quantity: 2, unit: "个", expiresAt: "2026-09-22T00:00:00.000Z", daysRemaining: 2 },
+  ]);
+});
+
+test("inventory recipe recommendations only include recipes whose ingredients are currently sufficient", () => {
+  const recipes = [
+    { id: "cookable", name: "鸡蛋羹", servings: 1, ingredients: [{ name: "鸡蛋", quantity: 2, unit: "个" }], steps: [] },
+    { id: "missing", name: "番茄炒蛋", servings: 1, ingredients: [{ name: "番茄", quantity: 3, unit: "个" }], steps: [] },
+  ];
+  const events = [{ type: "stock", ingredientName: "鸡蛋", quantity: 2, unit: "个" }, { type: "stock", ingredientName: "番茄", quantity: 2, unit: "个" }];
+
+  assert.deepEqual(inventoryRecipeRecommendations(recipes, events).map((item) => item.recipe.id), ["cookable"]);
+});
+
+test("expiry reminders allocate an unbound bulk consumption to the nearest batch", () => {
+  const events = [
+    { id: "old-eggs", type: "stock", ingredientName: "鸡蛋", quantity: 4, unit: "个", expiresAt: "2026-09-21T00:00:00.000Z" },
+    { id: "new-eggs", type: "stock", ingredientName: "鸡蛋", quantity: 4, unit: "个", expiresAt: "2026-09-23T00:00:00.000Z" },
+    { id: "bulk-consume", type: "consume", ingredientName: "鸡蛋", quantity: 3, unit: "个" },
+  ];
+
+  assert.equal(inventoryExpiringBatches(events, 3, new Date("2026-09-20T00:00:00.000Z"))[0].quantity, 1);
 });

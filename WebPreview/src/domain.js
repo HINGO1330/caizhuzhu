@@ -142,6 +142,56 @@ export function inventoryCountdown(expiresAt, now = new Date()) {
   return remaining < 0 ? "已过期" : `剩余 ${remaining} 天`;
 }
 
+export function inventoryExpiringBatches(events, days = 3, now = new Date()) {
+  const windowDays = Number(days);
+  const nowTime = now.getTime();
+  if (!Number.isFinite(windowDays) || windowDays < 0 || !Number.isFinite(nowTime)) return [];
+  const batches = (events ?? [])
+    .filter((event) => !event.voided && event.type === "stock" && event.expiresAt)
+    .map((event) => {
+      const expiresAt = new Date(event.expiresAt);
+      const daysRemaining = Math.ceil((expiresAt.getTime() - nowTime) / 86400000);
+      return {
+        batchId: event.batchId ?? event.id,
+        ingredientName: text(event.ingredientName),
+        quantity: Math.abs(Number(event.quantity) || 0),
+        unit: normalizeUnit(event.unit),
+        expiresAt: event.expiresAt,
+        daysRemaining,
+      };
+    });
+  const batchById = new Map(batches.map((batch) => [batch.batchId, batch]));
+  const batchesForIngredient = new Map();
+  for (const batch of batches) {
+    const key = keyFor(batch.ingredientName, batch.unit);
+    batchesForIngredient.set(key, [...(batchesForIngredient.get(key) ?? []), batch].sort((a, b) => a.expiresAt.localeCompare(b.expiresAt)));
+  }
+  for (const event of events ?? []) {
+    if (event.voided || event.type !== "consume") continue;
+    let remaining = Math.abs(Number(event.quantity) || 0);
+    const candidates = event.batchId
+      ? [batchById.get(event.batchId)].filter(Boolean)
+      : batchesForIngredient.get(keyFor(event.ingredientName, event.unit)) ?? [];
+    for (const batch of candidates) {
+      const used = Math.min(batch.quantity, remaining);
+      batch.quantity -= used;
+      remaining -= used;
+      if (!remaining) break;
+    }
+  }
+  return batches
+    .filter((batch) => batch.ingredientName && batch.quantity > 0 && batch.daysRemaining <= windowDays)
+    .sort((a, b) => a.daysRemaining - b.daysRemaining || a.expiresAt.localeCompare(b.expiresAt));
+}
+
+export function inventoryRecipeRecommendations(recipes, events) {
+  const balances = new Map(inventoryBalances(events).map((item) => [keyFor(item.ingredientName, item.unit), item.quantity]));
+  return (recipes ?? [])
+    .filter((recipe) => Array.isArray(recipe.ingredients) && recipe.ingredients.length > 0)
+    .filter((recipe) => recipe.ingredients.every((item) => (balances.get(keyFor(item.name, item.unit)) ?? 0) >= Number(item.quantity)))
+    .map((recipe) => ({ recipe, ingredientCount: recipe.ingredients.length }));
+}
+
 export function inventoryStockPrefill(items) {
   const validItems = (items ?? []).filter((item) => text(item.name));
   if (!validItems.length) return null;

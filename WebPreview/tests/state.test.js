@@ -42,6 +42,18 @@ test("menu actions keep shopping linked to the selected recipe", () => {
   assert.equal(removed.shoppingItems.length, 0);
 });
 
+test("today menu assigns a meal period and keeps older entries compatible", () => {
+  const state = {
+    ...emptyState,
+    recipes: [{ id: "r1", name: "鸡蛋羹", servings: 1, ingredients: [], steps: [] }],
+  };
+  const added = reduceState(state, { type: "menu/add", menu: { id: "breakfast", recipeId: "r1", servings: 1, mealPeriod: "breakfast" } });
+  const defaulted = reduceState(state, { type: "menu/add", menu: { id: "dinner", recipeId: "r1", servings: 1 } });
+
+  assert.equal(added.todayMenu[0].mealPeriod, "breakfast");
+  assert.equal(defaulted.todayMenu[0].mealPeriod, "dinner");
+});
+
 test("deleting an inventory event removes it directly without a reversal", () => {
   const stocked = reduceState(emptyState, {
     type: "inventory/add-event",

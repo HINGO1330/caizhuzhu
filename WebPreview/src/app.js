@@ -1,4 +1,4 @@
-import { canApplyInventoryEvent, confirmDraft, inventoryAdjustmentEvent, inventoryBalances, inventoryConsumeEvents, inventoryRecentEvents, inventoryStockPrefill, inventoryStockPrefills, normalizeUnit, splitRecipeSteps, validateRecipe } from "./domain.js";
+import { canApplyInventoryEvent, confirmDraft, inventoryAdjustmentEvent, inventoryBalances, inventoryConsumeEvents, inventoryExpiringBatches, inventoryRecentEvents, inventoryRecipeRecommendations, inventoryStockPrefill, inventoryStockPrefills, normalizeUnit, splitRecipeSteps, validateRecipe } from "./domain.js";
 import { createStepOrganizerClient } from "./ai.js";
 import { aiConfig } from "./ai-config.js";
 import { imageObjectURL, saveImage } from "./images.js";
@@ -85,11 +85,13 @@ function render() {
     content = recipe ? cookingView(recipe, ui.cooking.index) : recipesView(state);
   } else if (ui.tab === "recipes") {
     const recipe = state.recipes.find((item) => item.id === ui.recipeId);
-    content = recipe ? recipeDetailView(recipe) : recipesView(state);
+    content = recipe ? recipeDetailView(recipe) : recipesView(state, {
+      recommendations: inventoryRecipeRecommendations(state.recipes, state.inventoryEvents),
+    });
   } else if (ui.tab === "shopping") {
     content = shoppingView(state);
   } else {
-    content = inventoryView(state, inventoryBalances(state.inventoryEvents), inventoryRecentEvents(state.inventoryEvents), ui.inventoryArchiveOpen);
+    content = inventoryView(state, inventoryBalances(state.inventoryEvents), inventoryRecentEvents(state.inventoryEvents), ui.inventoryArchiveOpen, inventoryExpiringBatches(state.inventoryEvents));
   }
   app.innerHTML = appView(state, ui, content);
   hydrateImages();
@@ -394,7 +396,8 @@ document.addEventListener("submit", async (event) => {
     const recipe = state.recipes.find((item) => item.id === event.target.dataset.recipeId);
     const servings = Number(form.get("servings"));
     if (!recipe || !Number.isFinite(servings) || servings <= 0) { notify("请输入有效份量"); return; }
-    dispatch({ type: "menu/add", menu: { id: crypto.randomUUID(), recipeId: recipe.id, servings } });
+    const mealPeriod = String(form.get("mealPeriod") ?? "dinner");
+    dispatch({ type: "menu/add", menu: { id: crypto.randomUUID(), recipeId: recipe.id, servings, mealPeriod } });
     closeModal(); notify(`${recipe.name} 已加入今日菜单`); return;
   }
   if (event.target.id === "inventory-form") {

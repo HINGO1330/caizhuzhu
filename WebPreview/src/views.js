@@ -34,25 +34,35 @@ export function appView(state, ui, content) {
   </div>`;
 }
 
-export function recipesView(state) {
+export function recipesView(state, insights = {}) {
   const categories = ["全部", ...new Set(state.recipes.flatMap((recipe) => recipe.tags ?? []))];
   const selectedCategory = state.selectedCategory ?? "全部";
   const visibleRecipes = selectedCategory === "全部"
     ? state.recipes
     : state.recipes.filter((recipe) => (recipe.tags ?? []).includes(selectedCategory));
   const preview = recipePreview(visibleRecipes);
-  const menuRecipes = (state.todayMenu ?? []).map((entry) => state.recipes.find((recipe) => recipe.id === entry.recipeId)).filter(Boolean);
+  const mealPeriods = [["breakfast", "早餐", "用一顿舒服的早餐开始今天"], ["lunch", "午餐", "给下午留一点能量"], ["dinner", "晚餐", "把一天好好收尾"]];
+  const menuEntries = (state.todayMenu ?? []).map((entry) => ({ ...entry, recipe: state.recipes.find((recipe) => recipe.id === entry.recipeId) })).filter((entry) => entry.recipe);
+  const recommendations = insights.recommendations ?? [];
   return `<main class="screen">
     <span class="eyebrow">家庭厨房</span><h2 class="screen-title">今天吃什么？</h2><p class="screen-lede">收藏家里的拿手菜，从灵感一直管到上桌。</p>
     <section class="hero"><div class="hero-copy"><span class="eyebrow" style="color:#f7c8ad">快速开始</span><h2>记下你的下一道家常菜</h2><p>食材、步骤、份量和图片都放在一起。</p><button class="primary" data-action="recipe-new">新建菜谱</button></div></section>
+    <section class="today-menu-panel meal-plan"><div class="section-heading"><div><h2>今日菜单</h2><p>安排三餐，采购会随菜单同步。</p></div><span>${menuEntries.length} 道</span></div>
+      <div class="meal-plan-grid">${mealPeriods.map(([id, label, hint]) => {
+        const entries = menuEntries.filter((entry) => (entry.mealPeriod ?? "dinner") === id);
+        return `<section class="meal-slot"><div><h3>${label}</h3><p>${hint}</p></div>${entries.length ? `<div class="menu-chip-list">${entries.map((entry) => `<div class="menu-chip"><span>${escapeHTML(entry.recipe.name)} · ${entry.servings} 人份</span><button data-action="menu-remove" data-id="${entry.id}" aria-label="从今日菜单移除">×</button></div>`).join("")}</div>` : `<p class="meal-empty">暂未安排</p>`}</section>`;
+      }).join("")}</div>
+    </section>
+    ${recommendations.length ? `<section class="kitchen-insights"><div class="section-heading"><div><h2>库存可做</h2><p>当前食材已备齐，选一道就能开火。</p></div></div><div class="recommendation-list">${recommendations.slice(0, 3).map(({ recipe }) => `<button class="recommendation-item" data-action="recipe-open" data-id="${recipe.id}"><span><strong>${escapeHTML(recipe.name)}</strong><small>${recipe.ingredients.length} 种食材已备齐</small></span><b>去做菜 →</b></button>`).join("")}</div></section>` : ""}
     <div class="section-heading"><h2>我的菜谱</h2><span>${visibleRecipes.length} / ${state.recipes.length} 道</span></div>
     <div class="category-list">${categories.map((category) => `<button class="category-chip ${selectedCategory === category ? "active" : ""}" data-action="recipe-category" data-category="${escapeHTML(category)}">${escapeHTML(category)}</button>`).join("")}</div>
     <section class="recipe-grid">${preview.recipes.length ? preview.recipes.map((recipe) => recipeCard(recipe, (state.todayMenu ?? []).some((entry) => entry.recipeId === recipe.id))).join("") : `<div class="empty">这个分类还没有菜谱。</div>`}</section>
     ${preview.hasMore ? `<button class="secondary browse-recipes" data-action="recipe-browse-all">查看全部 ${visibleRecipes.length} 道菜谱</button>` : ""}
-    <section class="today-menu-panel"><div class="section-heading"><h2>今日菜单</h2><span>${menuRecipes.length} 道</span></div>
-      ${menuRecipes.length ? `<div class="menu-chip-list">${menuRecipes.map((recipe) => `<div class="menu-chip"><span>${escapeHTML(recipe.name)}</span><button data-action="menu-remove" data-id="${state.todayMenu.find((entry) => entry.recipeId === recipe.id)?.id}" aria-label="从今日菜单移除">×</button></div>`).join("")}</div>` : `<p class="screen-lede">从菜谱添加今天想做的菜，采购清单会自动同步。</p>`}
-    </section>
   </main>`;
+}
+
+function expiryHint(daysRemaining) {
+  return daysRemaining < 0 ? "已过期" : daysRemaining === 0 ? "今天到期" : daysRemaining === 1 ? "明天到期" : `${daysRemaining} 天内到期`;
 }
 
 function recipeCard(recipe, inMenu = false) {
@@ -140,9 +150,10 @@ export function recipePicker(recipes) {
   return `<div class="modal-head"><h2 id="modal-title">从菜谱生成</h2><button class="icon-button" data-action="modal-close">×</button></div><div class="modal-body"><div class="recipe-grid">${recipes.map((recipe) => `<button class="recipe-card picker-card" data-action="shopping-pick-recipe" data-id="${recipe.id}"><div><h3>${escapeHTML(recipe.name)}</h3><p>${recipe.ingredients.length} 种食材 · ${recipe.servings} 人份</p></div><span>＋</span></button>`).join("") || `<div class="empty">请先创建菜谱</div>`}</div></div>`;
 }
 
-export function inventoryView(state, balances, recentEvents, archivedOpen = false) {
+export function inventoryView(state, balances, recentEvents, archivedOpen = false, expiringBatches = []) {
   const archivedEvents = state.inventoryEvents.filter((event) => event.archived);
   return `<main class="screen"><span class="eyebrow">事件驱动库存</span><h2 class="screen-title">厨房里还有什么？</h2><p class="screen-lede">余额由每次入库、消耗和调整实时汇总，不维护另一份数字。</p>
+    ${expiringBatches.length ? `<section class="expiry-panel"><div class="section-heading"><div><h2>临期提醒</h2><p>优先使用即将到期的食材。</p></div><span>${expiringBatches.length} 批</span></div><div class="expiry-list">${expiringBatches.map((batch) => `<div class="expiry-item"><span>${escapeHTML(batch.ingredientName)} · ${batch.quantity} ${escapeHTML(batch.unit)} · ${expiryHint(batch.daysRemaining)}</span><strong>${batch.daysRemaining < 0 ? "已过期" : batch.daysRemaining === 0 ? "今天" : `剩余 ${batch.daysRemaining} 天`}</strong></div>`).join("")}</div></section>` : ""}
     <div class="balance-grid">${balances.length ? balances.map((item) => `<article class="balance-card"><span>${escapeHTML(item.ingredientName)}</span><strong>${item.quantity}</strong><small>${escapeHTML(item.unit)}</small></article>`).join("") : `<div class="empty">还没有库存事件</div>`}</div>
     <div class="inventory-actions"><button class="primary" data-action="inventory-new" data-kind="stock">入库</button><button class="secondary" data-action="inventory-new" data-kind="consume">消耗</button><button class="quiet" data-action="inventory-new" data-kind="adjust">调整</button></div><div class="section-heading"><h2>事件流水</h2><span>最近 ${recentEvents.length} 条</span></div>
     <section class="event-list">${recentEvents.map(eventRow).join("") || `<div class="empty">每次变化都会显示在这里。</div>`}</section>
@@ -215,7 +226,7 @@ function ingredientRow(item = {}) {
 }
 
 export function menuServingPicker(recipe) {
-  return `<form id="menu-form" data-recipe-id="${recipe.id}"><div class="modal-head"><h2 id="modal-title">加入今日菜单</h2><button type="button" class="icon-button" data-action="modal-close">×</button></div><div class="modal-body"><p class="screen-lede">${escapeHTML(recipe.name)} 的采购数量会按份量自动计算并向上取整。</p><label class="field">今日份量<input name="servings" type="number" min="0.1" step="0.1" value="1" required></label><div class="modal-actions"><button type="button" class="quiet" data-action="modal-close">取消</button><button class="primary">加入今日菜单</button></div></div></form>`;
+  return `<form id="menu-form" data-recipe-id="${recipe.id}"><div class="modal-head"><h2 id="modal-title">加入今日菜单</h2><button type="button" class="icon-button" data-action="modal-close">×</button></div><div class="modal-body"><p class="screen-lede">${escapeHTML(recipe.name)} 的采购数量会按份量自动计算并向上取整。</p><div class="form-grid"><label class="field">安排到<select name="mealPeriod"><option value="breakfast">早餐</option><option value="lunch">午餐</option><option value="dinner" selected>晚餐</option></select></label><label class="field">今日份量<input name="servings" type="number" min="0.1" step="0.1" value="1" required></label></div><div class="modal-actions"><button type="button" class="quiet" data-action="modal-close">取消</button><button class="primary">加入今日菜单</button></div></div></form>`;
 }
 
 export function settingsView() {

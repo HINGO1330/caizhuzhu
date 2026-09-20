@@ -36,9 +36,10 @@ export function reduceState(state, action) {
     }
     case "menu/add": {
       const currentMenus = state.todayMenu ?? [];
+      const menu = { ...action.menu, mealPeriod: action.menu.mealPeriod ?? "dinner" };
       const menus = currentMenus.some((item) => item.recipeId === action.menu.recipeId)
         ? currentMenus
-        : [action.menu, ...currentMenus];
+        : [menu, ...currentMenus];
       return rebuildMenuShopping(state, menus);
     }
     case "menu/remove":
