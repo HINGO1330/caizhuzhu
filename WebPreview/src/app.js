@@ -89,7 +89,7 @@ function render() {
   } else if (ui.tab === "shopping") {
     content = shoppingView(state);
   } else {
-    content = inventoryView(state, inventoryBalances(state.inventoryEvents), inventoryRecentEvents(state.inventoryEvents));
+    content = inventoryView(state, inventoryBalances(state.inventoryEvents), inventoryRecentEvents(state.inventoryEvents), ui.inventoryArchiveOpen);
   }
   app.innerHTML = appView(state, ui, content);
   hydrateImages();
@@ -246,12 +246,13 @@ document.addEventListener("click", (event) => {
       : inventoryEditor({ type: kind }));
   }
   if (action === "inventory-delete" && confirm("确定直接删除这条库存事件吗？")) {
+    if (button.closest(".archived-events")) ui = { ...ui, inventoryArchiveOpen: true };
     const countBefore = state.inventoryEvents.length;
     dispatch({ type: "inventory/delete", id });
     notify(state.inventoryEvents.length < countBefore ? "库存事件已删除" : "删除会导致库存为负数，已取消");
   }
   if (action === "inventory-archive") { dispatch({ type: "inventory/archive", id }); notify("事件已归档"); }
-  if (action === "inventory-unarchive") { dispatch({ type: "inventory/unarchive", id }); notify("事件已恢复到流水"); }
+  if (action === "inventory-unarchive") { ui = { ...ui, inventoryArchiveOpen: true }; dispatch({ type: "inventory/unarchive", id }); notify("事件已恢复到流水"); }
   if (action === "system-simulator") openModal(systemSimulatorView());
   if (action === "simulate-share" || action === "shortcut-import") { closeModal(); notify("导入功能已暂时移除"); }
   if (action === "shortcut-shopping") { closeModal(); ui = { tab: "shopping", recipeId: null, cooking: null }; render(); }

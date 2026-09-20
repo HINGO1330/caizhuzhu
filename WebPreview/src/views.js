@@ -140,14 +140,14 @@ export function recipePicker(recipes) {
   return `<div class="modal-head"><h2 id="modal-title">从菜谱生成</h2><button class="icon-button" data-action="modal-close">×</button></div><div class="modal-body"><div class="recipe-grid">${recipes.map((recipe) => `<button class="recipe-card picker-card" data-action="shopping-pick-recipe" data-id="${recipe.id}"><div><h3>${escapeHTML(recipe.name)}</h3><p>${recipe.ingredients.length} 种食材 · ${recipe.servings} 人份</p></div><span>＋</span></button>`).join("") || `<div class="empty">请先创建菜谱</div>`}</div></div>`;
 }
 
-export function inventoryView(state, balances, recentEvents) {
+export function inventoryView(state, balances, recentEvents, archivedOpen = false) {
   const archivedEvents = state.inventoryEvents.filter((event) => event.archived);
   return `<main class="screen"><span class="eyebrow">事件驱动库存</span><h2 class="screen-title">厨房里还有什么？</h2><p class="screen-lede">余额由每次入库、消耗和调整实时汇总，不维护另一份数字。</p>
     <div class="balance-grid">${balances.length ? balances.map((item) => `<article class="balance-card"><span>${escapeHTML(item.ingredientName)}</span><strong>${item.quantity}</strong><small>${escapeHTML(item.unit)}</small></article>`).join("") : `<div class="empty">还没有库存事件</div>`}</div>
     <div class="inventory-actions"><button class="primary" data-action="inventory-new" data-kind="stock">入库</button><button class="secondary" data-action="inventory-new" data-kind="consume">消耗</button><button class="quiet" data-action="inventory-new" data-kind="adjust">调整</button></div><div class="section-heading"><h2>事件流水</h2><span>最近 ${recentEvents.length} 条</span></div>
     <section class="event-list">${recentEvents.map(eventRow).join("") || `<div class="empty">每次变化都会显示在这里。</div>`}</section>
     ${(state.inventoryEvents.filter((event) => !event.archived).length > recentEvents.length) ? `<p class="form-note">仅显示最近 5 条事件，请归档已处理记录。</p>` : ""}
-    <section class="archived-events"><details><summary>已归档（${archivedEvents.length} 条）</summary><div class="event-list">${archivedEvents.map((event) => `${eventRow(event)}<button class="quiet archive-restore" data-action="inventory-unarchive" data-id="${event.id}">恢复到流水</button>`).join("") || `<p class="form-note">暂无归档记录</p>`}</div></details></section>
+    <section class="archived-events"><details${archivedOpen ? " open" : ""}><summary>已归档（${archivedEvents.length} 条）</summary><div class="event-list">${archivedEvents.map((event) => `${eventRow(event)}<button class="quiet archive-restore" data-action="inventory-unarchive" data-id="${event.id}">恢复到流水</button>`).join("") || `<p class="form-note">暂无归档记录</p>`}</div></details></section>
   </main>`;
 }
 
@@ -155,7 +155,10 @@ function eventRow(event) {
   const amount = event.type === "adjust" && Number.isFinite(Number(event.targetQuantity))
     ? `调整至 ${event.targetQuantity} ${escapeHTML(event.unit)}`
     : `${event.quantity} ${escapeHTML(event.unit)}`;
-  return `<div class="event-row"><span class="event-icon ${event.type}">${event.type === "stock" ? "+" : event.type === "consume" ? "−" : "±"}</span><div><strong>${escapeHTML(event.ingredientName)}</strong><small>${event.type === "stock" ? "入库" : event.type === "consume" ? "消耗" : "调整"} · ${new Date(event.createdAt).toLocaleString("zh-CN")}${event.expiresAt ? ` · <span class="expiry">${escapeHTML(countdownLabel(event.expiresAt))}</span>` : ""}</small></div><b>${amount}</b><div class="event-actions">${!event.archived ? `<button class="row-delete" data-action="inventory-delete" data-id="${event.id}" aria-label="删除记录">删除</button><button class="row-delete" data-action="inventory-archive" data-id="${event.id}" aria-label="归档记录">归档</button>` : ""}</div></div>`;
+  const actions = event.archived
+    ? `<button class="row-delete" data-action="inventory-delete" data-id="${event.id}" aria-label="删除归档记录">删除</button>`
+    : `<button class="row-delete" data-action="inventory-delete" data-id="${event.id}" aria-label="删除记录">删除</button><button class="row-delete" data-action="inventory-archive" data-id="${event.id}" aria-label="归档记录">归档</button>`;
+  return `<div class="event-row"><span class="event-icon ${event.type}">${event.type === "stock" ? "+" : event.type === "consume" ? "−" : "±"}</span><div><strong>${escapeHTML(event.ingredientName)}</strong><small>${event.type === "stock" ? "入库" : event.type === "consume" ? "消耗" : "调整"} · ${new Date(event.createdAt).toLocaleString("zh-CN")}${event.expiresAt ? ` · <span class="expiry">${escapeHTML(countdownLabel(event.expiresAt))}</span>` : ""}</small></div><b>${amount}</b><div class="event-actions">${actions}</div></div>`;
 }
 
 function countdownLabel(expiresAt) {
