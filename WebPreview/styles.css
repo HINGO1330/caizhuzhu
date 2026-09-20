@@ -54,6 +54,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .section-heading span { color: var(--muted); font-size: 13px; white-space: nowrap; }
 .recipe-grid { display: grid; gap: 10px; }
 .recipe-card { border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px; background: var(--white); display: grid; gap: 12px; transition: border-color .18s var(--ease-out), background-color .18s var(--ease-out), transform .18s var(--ease-out); }
+.recipe-card-photo { width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius-md); background-size: cover; background-position: center; }
 .recipe-card h3 { margin: 0 0 7px; font-size: 17px; line-height: 1.35; }
 .recipe-card p { margin: 0 0 12px; color: var(--muted); line-height: 1.45; font-size: 13px; }
 .meta-row { display: flex; gap: 8px; flex-wrap: wrap; }

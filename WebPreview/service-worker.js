@@ -1,4 +1,4 @@
-const CACHE = "caizhuzhu-pwa-v6";
+const CACHE = "caizhuzhu-pwa-v7";
 const ASSETS = [
   "./",
   "./index.html",
@@ -15,7 +15,8 @@ const ASSETS = [
   "./src/install.js",
   "./src/state.js",
   "./src/storage.js",
-  "./src/views.js"
+  "./src/views.js",
+  "./src/recipe-pack.js"
 ];
 
 self.addEventListener("install", (event) => {

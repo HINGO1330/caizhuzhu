@@ -66,7 +66,8 @@ function expiryHint(daysRemaining) {
 }
 
 function recipeCard(recipe, inMenu = false) {
-  return `<article class="recipe-card"><div><h3>${escapeHTML(recipe.name)}</h3><p>${escapeHTML(recipe.summary || "还没有简介")}</p><div class="meta-row">${(recipe.tags ?? []).slice(0, 3).map((tag) => `<span class="pill">${escapeHTML(tag)}</span>`).join("")}</div></div><div class="card-actions"><button class="quiet" data-action="menu-add" data-id="${recipe.id}" ${inMenu ? "disabled" : ""}>${inMenu ? "已加入" : "加到今日"}</button><button class="card-action" data-action="recipe-open" data-id="${recipe.id}" aria-label="查看${escapeHTML(recipe.name)}">→</button></div></article>`;
+  const image = (recipe.imageKeys ?? [])[0];
+  return `<article class="recipe-card">${image ? `<div class="recipe-card-photo skeleton" data-image-key="${escapeHTML(image)}" aria-label="${escapeHTML(recipe.name)}图片"></div>` : ""}<div><h3>${escapeHTML(recipe.name)}</h3><p>${escapeHTML(recipe.summary || "还没有简介")}</p><div class="meta-row">${(recipe.tags ?? []).slice(0, 3).map((tag) => `<span class="pill">${escapeHTML(tag)}</span>`).join("")}</div></div><div class="card-actions"><button class="quiet" data-action="menu-add" data-id="${recipe.id}" ${inMenu ? "disabled" : ""}>${inMenu ? "已加入" : "加到今日"}</button><button class="card-action" data-action="recipe-open" data-id="${recipe.id}" aria-label="查看${escapeHTML(recipe.name)}">→</button></div></article>`;
 }
 
 export function recipeBrowser(recipes) {

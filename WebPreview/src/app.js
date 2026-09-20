@@ -7,6 +7,7 @@ import { cloudConfig } from "./cloud-config.js";
 import { installInstructionsFor } from "./install.js";
 import { exportState, importState, loadState, saveState } from "./storage.js";
 import { reduceState } from "./state.js";
+import { mergeEverydayRecipes } from "./recipe-pack.js";
 import {
   appView,
   cookingView,
@@ -41,9 +42,10 @@ function pruneExpiredArchivedEvents(currentState, now = new Date()) {
   });
 }
 
-const loadedState = loadState();
+const savedState = loadState();
+const loadedState = mergeEverydayRecipes(savedState);
 let state = pruneExpiredArchivedEvents(loadedState);
-if (state !== loadedState) saveState(localStorage, state);
+if (state !== savedState) saveState(localStorage, state);
 let ui = { tab: "recipes", recipeId: null, cooking: null, selectedCategory: "全部" };
 let pendingShoppingIds = [];
 let suggestedSteps = [];
@@ -99,7 +101,8 @@ function render() {
 
 async function hydrateImages() {
   for (const element of document.querySelectorAll("[data-image-key]")) {
-    const url = await imageObjectURL(element.dataset.imageKey).catch(() => null);
+    const key = element.dataset.imageKey;
+    const url = key.startsWith("./assets/") ? key : await imageObjectURL(key).catch(() => null);
     if (url) { element.style.backgroundImage = `url("${url}")`; element.classList.remove("skeleton"); }
   }
 }
@@ -274,7 +277,7 @@ document.addEventListener("submit", async (event) => {
       const remoteState = await cloud.fetchState(session.access_token);
       if (remoteState) {
         const restoredState = importState(JSON.stringify(remoteState));
-        state = pruneExpiredArchivedEvents(restoredState);
+        state = mergeEverydayRecipes(pruneExpiredArchivedEvents(restoredState));
         saveState(localStorage, state);
         if (state !== restoredState) await cloud.saveState(session.access_token, state);
         notify("已恢复共享账号的云端数据");
