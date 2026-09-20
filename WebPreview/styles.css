@@ -42,18 +42,18 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .icon-button { border: 1px solid var(--line); background: var(--white); border-radius: var(--radius-sm); width: 44px; height: 44px; color: var(--ink); transition: background-color .18s var(--ease-out), color .18s var(--ease-out), transform .18s var(--ease-out); }
 .screen { padding: 12px 18px 28px; max-width: 760px; margin: 0 auto; }
 .eyebrow { color: var(--tomato-dark); font-size: 12px; letter-spacing: .08em; font-weight: 800; }
-.screen-title { margin: 6px 0 5px; font-family: Georgia, "Songti SC", serif; font-size: 34px; line-height: 1.12; letter-spacing: -.025em; text-wrap: balance; }
+.screen-title { margin: 6px 0 5px; font-size: 32px; line-height: 1.16; letter-spacing: -.025em; text-wrap: balance; }
 .screen-lede { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.65; text-wrap: pretty; }
-.hero { position: relative; overflow: hidden; margin: 18px 0 26px; padding: 22px; border-radius: var(--radius-lg); color: #fff7e9; background: var(--tomato-dark); min-height: 184px; box-shadow: var(--shadow-float); }
-.hero::after { content: "🍅"; position: absolute; right: 12px; bottom: -28px; font-size: 126px; transform: rotate(-9deg); opacity: .88; }
-.hero-copy { position: relative; z-index: 1; max-width: 58%; }
-.hero h2 { margin: 8px 0; font-family: Georgia, "Songti SC", serif; font-size: 28px; line-height: 1.16; letter-spacing: -.02em; text-wrap: balance; }
+.hero { margin: 18px 0 26px; padding: 18px; border-radius: var(--radius-lg); color: #fff7e9; background: var(--tomato-dark); box-shadow: var(--shadow-float); }
+.hero::after { content: none; }
+.hero-copy { max-width: 100%; }
+.hero h2 { margin: 7px 0; font-size: 24px; line-height: 1.22; letter-spacing: -.02em; text-wrap: balance; }
 .hero p { margin: 0 0 18px; line-height: 1.55; opacity: .82; }
 .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin: 28px 2px 12px; }
 .section-heading h2 { margin: 0; font-size: 18px; letter-spacing: -.01em; }
 .section-heading span { color: var(--muted); font-size: 13px; white-space: nowrap; }
 .recipe-grid { display: grid; gap: 10px; }
-.recipe-card { border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px; background: var(--white); display: grid; grid-template-columns: 1fr auto; gap: 12px; transition: border-color .18s var(--ease-out), background-color .18s var(--ease-out), transform .18s var(--ease-out); }
+.recipe-card { border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px; background: var(--white); display: grid; gap: 12px; transition: border-color .18s var(--ease-out), background-color .18s var(--ease-out), transform .18s var(--ease-out); }
 .recipe-card h3 { margin: 0 0 7px; font-size: 17px; line-height: 1.35; }
 .recipe-card p { margin: 0 0 12px; color: var(--muted); line-height: 1.45; font-size: 13px; }
 .meta-row { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -136,10 +136,10 @@ button:disabled { opacity: .42; cursor: not-allowed; }
 .quantity-controls button, .row-delete { border: 0; background: var(--cream); width: 44px; height: 44px; border-radius: 50%; color: var(--ink); }
 .row-delete { color: #9b3f32; background: transparent; }
 .picker-card { width: 100%; text-align: left; color: var(--ink); }
-.balance-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 22px; }
-.balance-card { display: grid; gap: 2px; padding: 16px; border-radius: var(--radius-md); color: white; background: var(--leaf); }
-.balance-card strong { font-size: 28px; }
-.balance-card small { opacity: .75; }
+.balance-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 22px; }
+.balance-card { display: grid; gap: 3px; padding: 15px; border: 1px solid var(--line); border-radius: var(--radius-md); color: var(--ink); background: color-mix(in oklch, var(--white) 92%, var(--leaf)); }
+.balance-card strong { color: var(--leaf); font-size: 27px; line-height: 1.05; letter-spacing: -.03em; }
+.balance-card small { color: var(--muted); }
 .event-row { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto auto; gap: 11px; align-items: center; padding: 13px; background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-md); }
 .event-row small { display: block; color: var(--muted); margin-top: 3px; }
 .event-icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 12px; color: white; background: var(--leaf); font-weight: 900; }
@@ -153,7 +153,7 @@ button:disabled { opacity: .42; cursor: not-allowed; }
   body { padding: 28px; }
   .preview-layout { max-width: 1180px; margin: auto; display: grid; grid-template-columns: 300px minmax(0, 760px); gap: 24px; align-items: start; }
   .desktop-note { display: block; position: sticky; top: 28px; padding: 28px; background: var(--ink); color: #f9ecda; border-radius: var(--radius-lg); min-height: 520px; box-shadow: var(--shadow-float); }
-  .desktop-note h2 { font-family: Georgia, "Songti SC", serif; font-size: 34px; line-height: 1.1; margin: 70px 0 16px; }
+  .desktop-note h2 { font-size: 32px; line-height: 1.15; letter-spacing: -.025em; margin: 70px 0 16px; }
   .desktop-note p { color: #d8c5b6; line-height: 1.7; }
   .desktop-note .notice { margin-top: 42px; padding: 14px; border: 1px solid #685047; border-radius: 15px; font-size: 12px; }
   .app-frame { min-height: calc(100vh - 56px); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-float); position: relative; }
@@ -162,13 +162,13 @@ button:disabled { opacity: .42; cursor: not-allowed; }
 
 @media (max-width: 520px) {
   .two-col { grid-template-columns: 1fr; }
-  .hero-copy { max-width: 67%; }
+  .hero-copy { max-width: 100%; }
   .detail-actions .quiet { display: none; }
   .inline-form { grid-template-columns: 1fr 64px; }
   .inline-form input[name="unit"] { grid-column: 1; }
   .inline-form button { grid-column: 2; grid-row: 2; }
   .screen-title { font-size: 30px; }
-  .hero { padding: 20px; }
+  .hero { padding: 18px; }
   .event-row { grid-template-columns: 40px minmax(0, 1fr) auto; }
   .event-actions { grid-column: 2 / -1; justify-content: flex-end; }
 }
@@ -196,4 +196,6 @@ button:disabled { opacity: .42; cursor: not-allowed; }
 .field input:hover, .field textarea:hover, .field select:hover { border-color: color-mix(in oklch, var(--line) 55%, var(--tomato)); }
 .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--tomato); box-shadow: 0 0 0 3px color-mix(in oklch, var(--tomato) 18%, transparent); outline: none; }
 .recipe-card:focus-visible, .action-tile:focus-visible, .category-chip:focus-visible { outline: 3px solid color-mix(in oklch, var(--tomato) 35%, transparent); outline-offset: 3px; }
-.card-actions{display:flex;align-items:center;gap:8px}
+.picker-card { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+.card-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+.card-actions .quiet { white-space: nowrap; }
