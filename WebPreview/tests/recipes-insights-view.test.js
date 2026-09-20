@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { inventoryView, recipesView } from "../src/views.js";
+import { inventoryView, recipeBrowser, recipesForCategory, recipesView } from "../src/views.js";
 
 test("recipe home presents stock recommendations and meal periods without inventory alerts", () => {
   const recipe = { id: "egg-custard", name: "鸡蛋羹", summary: "嫩滑快手", servings: 1, ingredients: [{ name: "鸡蛋", quantity: 2, unit: "个" }], steps: [], tags: [] };
@@ -24,4 +24,19 @@ test("inventory page presents expiry reminders", () => {
   assert.match(html, /临期提醒/);
   assert.match(html, /鸡蛋 · 2 个 · 明天到期/);
   assert.match(html, /class="expiry-badge"/);
+});
+
+test("recipe browser identifies the active category instead of implying every recipe is shown", () => {
+  const recipes = [
+    { id: "vegetable", name: "蒜蓉西兰花", summary: "", tags: ["素菜"], imageKeys: [] },
+    { id: "meat", name: "可乐鸡翅", summary: "", tags: ["荤菜"], imageKeys: [] },
+  ];
+  const filtered = recipesForCategory(recipes, "素菜");
+  const html = recipeBrowser(filtered, "素菜");
+
+  assert.deepEqual(filtered.map((recipe) => recipe.id), ["vegetable"]);
+  assert.match(html, /全部素菜菜谱/);
+  assert.match(html, /蒜蓉西兰花/);
+  assert.doesNotMatch(html, /可乐鸡翅/);
+  assert.doesNotMatch(html, /全部菜谱<\/h2>/);
 });

@@ -23,6 +23,7 @@ import {
   recipeDetailView,
   recipeBrowser,
   recipeEditor,
+  recipesForCategory,
   recipesView,
   settingsView,
   stepPreview,
@@ -158,7 +159,10 @@ document.addEventListener("click", (event) => {
   }
   if (action === "menu-remove") { dispatch({ type: "menu/remove", id }); notify("已从今日菜单移除，采购清单同步更新"); }
   if (action === "recipe-new") openModal(recipeEditor({}, state.customTags ?? []));
-  if (action === "recipe-browse-all") openModal(recipeBrowser(state.recipes));
+  if (action === "recipe-browse-all") {
+    const category = ui.selectedCategory ?? "全部";
+    openModal(recipeBrowser(recipesForCategory(state.recipes, category), category));
+  }
   if (action === "ingredient-add") {
     const list = document.querySelector("#ingredient-list");
     if (list) { list.insertAdjacentHTML("beforeend", `<div class="ingredient-entry"><input name="ingredientName" required placeholder="名称"><input name="ingredientQuantity" required type="number" min="0.01" step="0.01" placeholder="数量"><input name="ingredientUnit" required placeholder="单位"><button type="button" class="row-delete" data-action="ingredient-remove" aria-label="删除食材">×</button></div>`); }

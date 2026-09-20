@@ -37,9 +37,7 @@ export function appView(state, ui, content) {
 export function recipesView(state, insights = {}) {
   const categories = ["全部", ...new Set(state.recipes.flatMap((recipe) => recipe.tags ?? []))];
   const selectedCategory = state.selectedCategory ?? "全部";
-  const visibleRecipes = selectedCategory === "全部"
-    ? state.recipes
-    : state.recipes.filter((recipe) => (recipe.tags ?? []).includes(selectedCategory));
+  const visibleRecipes = recipesForCategory(state.recipes, selectedCategory);
   const preview = recipePreview(visibleRecipes);
   const mealPeriods = [["breakfast", "早餐", "用一顿舒服的早餐开始今天"], ["lunch", "午餐", "给下午留一点能量"], ["dinner", "晚餐", "把一天好好收尾"]];
   const menuEntries = (state.todayMenu ?? []).map((entry) => ({ ...entry, recipe: state.recipes.find((recipe) => recipe.id === entry.recipeId) })).filter((entry) => entry.recipe);
@@ -61,6 +59,12 @@ export function recipesView(state, insights = {}) {
   </main>`;
 }
 
+export function recipesForCategory(recipes, category = "全部") {
+  return category === "全部"
+    ? recipes
+    : recipes.filter((recipe) => (recipe.tags ?? []).includes(category));
+}
+
 function expiryHint(daysRemaining) {
   return daysRemaining < 0 ? "已过期" : daysRemaining === 0 ? "今天到期" : daysRemaining === 1 ? "明天到期" : `${daysRemaining} 天内到期`;
 }
@@ -70,8 +74,9 @@ function recipeCard(recipe, inMenu = false) {
   return `<article class="recipe-card">${image ? `<div class="recipe-card-photo skeleton" data-image-key="${escapeHTML(image)}" aria-label="${escapeHTML(recipe.name)}图片"></div>` : ""}<div><h3>${escapeHTML(recipe.name)}</h3><p>${escapeHTML(recipe.summary || "还没有简介")}</p><div class="meta-row">${(recipe.tags ?? []).slice(0, 3).map((tag) => `<span class="pill">${escapeHTML(tag)}</span>`).join("")}</div></div><div class="card-actions"><button class="quiet" data-action="menu-add" data-id="${recipe.id}" ${inMenu ? "disabled" : ""}>${inMenu ? "已加入" : "加到今日"}</button><button class="card-action" data-action="recipe-open" data-id="${recipe.id}" aria-label="查看${escapeHTML(recipe.name)}">→</button></div></article>`;
 }
 
-export function recipeBrowser(recipes) {
-  return `<div class="modal-head"><h2 id="modal-title">全部菜谱</h2><button type="button" class="icon-button" data-action="modal-close">×</button></div><div class="modal-body"><section class="recipe-grid">${recipes.map((recipe) => recipeCard(recipe)).join("") || `<div class="empty">还没有菜谱</div>`}</section></div>`;
+export function recipeBrowser(recipes, category = "全部") {
+  const title = category === "全部" ? "全部菜谱" : `全部${escapeHTML(category)}菜谱`;
+  return `<div class="modal-head"><h2 id="modal-title">${title}</h2><button type="button" class="icon-button" data-action="modal-close">×</button></div><div class="modal-body"><section class="recipe-grid">${recipes.map((recipe) => recipeCard(recipe)).join("") || `<div class="empty">还没有菜谱</div>`}</section></div>`;
 }
 
 export function recipeDetailView(recipe) {
