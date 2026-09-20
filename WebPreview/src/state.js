@@ -1,4 +1,4 @@
-import { canApplyInventoryEvent, inventoryBalances, shoppingItemsFromRecipe } from "./domain.js";
+import { canApplyInventoryEvent, hasNegativeInventoryBalance, shoppingItemsFromRecipe } from "./domain.js";
 
 function rebuildMenuShopping(state, menus) {
   const manual = state.shoppingItems.filter((item) => item.source !== "menu");
@@ -86,7 +86,7 @@ export function reduceState(state, action) {
     }
     case "inventory/delete": {
       const remaining = state.inventoryEvents.filter((event) => event.id !== action.id);
-      return inventoryBalances(remaining).some((item) => item.quantity < 0)
+      return hasNegativeInventoryBalance(remaining)
         ? state
         : { ...state, inventoryEvents: remaining };
     }

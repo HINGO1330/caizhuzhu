@@ -99,7 +99,7 @@ export function shoppingItemsFromMenus(recipes, menus) {
   return [...totals.values()].sort((a, b) => a.name.localeCompare(b.name, "zh-CN"));
 }
 
-export function inventoryBalances(events) {
+function inventoryBalanceTotals(events) {
   const totals = new Map();
   for (const event of events ?? []) {
     if (event.voided) continue;
@@ -117,7 +117,17 @@ export function inventoryBalances(events) {
     current.quantity += delta;
     totals.set(key, current);
   }
-  return [...totals.values()].sort((a, b) => a.ingredientName.localeCompare(b.ingredientName, "zh-CN"));
+  return [...totals.values()];
+}
+
+export function inventoryBalances(events) {
+  return inventoryBalanceTotals(events)
+    .filter((item) => item.quantity > 0)
+    .sort((a, b) => a.ingredientName.localeCompare(b.ingredientName, "zh-CN"));
+}
+
+export function hasNegativeInventoryBalance(events) {
+  return inventoryBalanceTotals(events).some((item) => item.quantity < 0);
 }
 
 export function inventoryEventDelta(event) {
@@ -164,14 +174,14 @@ export function inventoryRecentEvents(events, limit = 5) {
 export function canApplyInventoryEvent(events, event) {
   const delta = inventoryEventDelta(event);
   if (delta >= 0) return true;
-  const balance = inventoryBalances(events).find((item) => keyFor(item.ingredientName, item.unit) === keyFor(event.ingredientName, event.unit));
+  const balance = inventoryBalanceTotals(events).find((item) => keyFor(item.ingredientName, item.unit) === keyFor(event.ingredientName, event.unit));
   return (balance?.quantity ?? 0) + delta >= 0;
 }
 
 export function inventoryAdjustmentEvent(events, { ingredientName, unit, targetQuantity }) {
   const target = Number(targetQuantity);
   if (!Number.isFinite(target) || target < 0) throw new Error("调整后的库存不能小于零");
-  const balance = inventoryBalances(events).find((item) => keyFor(item.ingredientName, item.unit) === keyFor(ingredientName, unit));
+  const balance = inventoryBalanceTotals(events).find((item) => keyFor(item.ingredientName, item.unit) === keyFor(ingredientName, unit));
   return {
     ingredientName: text(ingredientName),
     unit: normalizeUnit(unit),

@@ -56,6 +56,18 @@ test("inventory balance is derived from stock consume and signed adjustment even
   ]);
 });
 
+test("zero-balance ingredients are omitted from the inventory summary", () => {
+  const events = [
+    { ingredientName: "鸡蛋", unit: "个", quantity: 2, type: "stock" },
+    { ingredientName: "鸡蛋", unit: "个", quantity: 2, type: "consume" },
+    { ingredientName: "番茄", unit: "个", quantity: 1, type: "stock" },
+  ];
+
+  assert.deepEqual(inventoryBalances(events), [
+    { ingredientName: "番茄", unit: "个", quantity: 1 },
+  ]);
+});
+
 test("today menu creates grouped shopping items and removing a menu removes only its ingredients", () => {
   const recipes = [
     { id: "r1", name: "番茄炒蛋", servings: 2, ingredients: [{ name: "番茄", quantity: 2, unit: "个" }], steps: [] },
