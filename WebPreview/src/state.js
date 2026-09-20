@@ -91,9 +91,23 @@ export function reduceState(state, action) {
         : { ...state, inventoryEvents: remaining };
     }
     case "inventory/archive":
-      return { ...state, inventoryEvents: state.inventoryEvents.map((event) => event.id === action.id ? { ...event, archived: true } : event) };
+      return {
+        ...state,
+        inventoryEvents: state.inventoryEvents.map((event) => event.id === action.id
+          ? { ...event, archived: true, archivedAt: action.archivedAt ?? new Date().toISOString() }
+          : event),
+      };
     case "inventory/unarchive":
-      return { ...state, inventoryEvents: state.inventoryEvents.map((event) => event.id === action.id ? { ...event, archived: false } : event) };
+      return { ...state, inventoryEvents: state.inventoryEvents.map((event) => event.id === action.id ? { ...event, archived: false, archivedAt: null } : event) };
+    case "inventory/prune-archived": {
+      const cutoff = Date.parse(action.before);
+      if (!Number.isFinite(cutoff)) return state;
+      const inventoryEvents = state.inventoryEvents.filter((event) => {
+        const archivedAt = Date.parse(event.archivedAt);
+        return !event.archived || !Number.isFinite(archivedAt) || archivedAt > cutoff;
+      });
+      return inventoryEvents.length === state.inventoryEvents.length ? state : { ...state, inventoryEvents };
+    }
     default:
       return state;
   }

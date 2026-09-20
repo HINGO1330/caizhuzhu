@@ -32,7 +32,18 @@ import {
 const app = document.querySelector("#app");
 const modal = document.querySelector("#modal");
 const toast = document.querySelector("#toast");
-let state = loadState();
+const ARCHIVE_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+
+function pruneExpiredArchivedEvents(currentState, now = new Date()) {
+  return reduceState(currentState, {
+    type: "inventory/prune-archived",
+    before: new Date(now.getTime() - ARCHIVE_RETENTION_MS).toISOString(),
+  });
+}
+
+const loadedState = loadState();
+let state = pruneExpiredArchivedEvents(loadedState);
+if (state !== loadedState) saveState(localStorage, state);
 let ui = { tab: "recipes", recipeId: null, cooking: null, selectedCategory: "全部" };
 let pendingShoppingIds = [];
 let suggestedSteps = [];
@@ -43,6 +54,7 @@ const aiOrganizer = createStepOrganizerClient(aiConfig);
 
 function dispatch(action) {
   state = reduceState(state, action);
+  state = pruneExpiredArchivedEvents(state);
   saveState(localStorage, state);
   void syncCloudState();
   render();
@@ -258,8 +270,10 @@ document.addEventListener("submit", async (event) => {
       cloudSessions.save(session);
       const remoteState = await cloud.fetchState(session.access_token);
       if (remoteState) {
-        state = importState(JSON.stringify(remoteState));
+        const restoredState = importState(JSON.stringify(remoteState));
+        state = pruneExpiredArchivedEvents(restoredState);
         saveState(localStorage, state);
+        if (state !== restoredState) await cloud.saveState(session.access_token, state);
         notify("已恢复共享账号的云端数据");
       } else {
         await cloud.saveState(session.access_token, state);

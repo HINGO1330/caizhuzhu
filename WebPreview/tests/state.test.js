@@ -68,10 +68,26 @@ test("archiving an inventory event preserves it but removes it from the active s
     ...emptyState,
     inventoryEvents: [{ id: "e1", ingredientName: "鸡蛋", quantity: 2, unit: "个", type: "stock" }],
   };
-  const archived = reduceState(state, { type: "inventory/archive", id: "e1" });
+  const archived = reduceState(state, { type: "inventory/archive", id: "e1", archivedAt: "2026-09-10T00:00:00.000Z" });
   assert.equal(archived.inventoryEvents[0].archived, true);
+  assert.equal(archived.inventoryEvents[0].archivedAt, "2026-09-10T00:00:00.000Z");
   const restored = reduceState(archived, { type: "inventory/unarchive", id: "e1" });
   assert.equal(restored.inventoryEvents[0].archived, false);
+  assert.equal(restored.inventoryEvents[0].archivedAt, null);
+});
+
+test("archived inventory events are removed after seven days", () => {
+  const state = {
+    ...emptyState,
+    inventoryEvents: [
+      { id: "expired", type: "stock", ingredientName: "鸡蛋", quantity: 2, unit: "个", archived: true, archivedAt: "2026-09-01T00:00:00.000Z" },
+      { id: "recent", type: "stock", ingredientName: "番茄", quantity: 1, unit: "个", archived: true, archivedAt: "2026-09-10T00:00:00.000Z" },
+      { id: "active", type: "stock", ingredientName: "青菜", quantity: 1, unit: "把" },
+    ],
+  };
+
+  const next = reduceState(state, { type: "inventory/prune-archived", before: "2026-09-08T00:00:00.000Z" });
+  assert.deepEqual(next.inventoryEvents.map((event) => event.id), ["recent", "active"]);
 });
 
 test("bulk consumption records every requested inventory item in one state change", () => {
