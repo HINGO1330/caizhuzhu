@@ -48,9 +48,9 @@ export function recipesView(state, insights = {}) {
     <span class="eyebrow">家庭厨房</span><h2 class="screen-title">今天吃什么？</h2><p class="screen-lede">收藏家里的拿手菜，从灵感一直管到上桌。</p>
     <section class="hero"><div class="hero-copy"><span class="eyebrow" style="color:#f7c8ad">快速开始</span><h2>记下你的下一道家常菜</h2><p>食材、步骤、份量和图片都放在一起。</p><button class="primary" data-action="recipe-new">新建菜谱</button></div></section>
     <section class="today-menu-panel meal-plan"><div class="section-heading"><div><h2>今日菜单</h2><p>安排三餐，采购会随菜单同步。</p></div><span>${menuEntries.length} 道</span></div>
-      <div class="meal-plan-grid">${mealPeriods.map(([id, label, hint]) => {
+      <div class="meal-plan-list">${mealPeriods.map(([id, label, hint]) => {
         const entries = menuEntries.filter((entry) => (entry.mealPeriod ?? "dinner") === id);
-        return `<section class="meal-slot"><div><h3>${label}</h3><p>${hint}</p></div>${entries.length ? `<div class="menu-chip-list">${entries.map((entry) => `<div class="menu-chip"><span>${escapeHTML(entry.recipe.name)} · ${entry.servings} 人份</span><button data-action="menu-remove" data-id="${entry.id}" aria-label="从今日菜单移除">×</button></div>`).join("")}</div>` : `<p class="meal-empty">暂未安排</p>`}</section>`;
+        return `<section class="meal-slot"><div class="meal-label"><h3>${label}</h3><p>${hint}</p></div><div class="meal-content">${entries.length ? `<div class="menu-chip-list">${entries.map((entry) => `<div class="menu-chip"><span>${escapeHTML(entry.recipe.name)}</span><button data-action="menu-remove" data-id="${entry.id}" aria-label="从今日菜单移除">×</button></div>`).join("")}</div>` : `<p class="meal-empty">暂未安排</p>`}</div></section>`;
       }).join("")}</div>
     </section>
     ${recommendations.length ? `<section class="kitchen-insights"><div class="section-heading"><div><h2>库存可做</h2><p>当前食材已备齐，选一道就能开火。</p></div></div><div class="recommendation-list">${recommendations.slice(0, 3).map(({ recipe }) => `<button class="recommendation-item" data-action="recipe-open" data-id="${recipe.id}"><span><strong>${escapeHTML(recipe.name)}</strong><small>${recipe.ingredients.length} 种食材已备齐</small></span><b>去做菜 →</b></button>`).join("")}</div></section>` : ""}

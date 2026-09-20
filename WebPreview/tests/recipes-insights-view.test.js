@@ -13,6 +13,7 @@ test("recipe home presents stock recommendations and meal periods without invent
   assert.match(html, /早餐/);
   assert.match(html, /午餐/);
   assert.match(html, /晚餐/);
+  assert.doesNotMatch(html, /1 人份/);
 });
 
 test("inventory page presents expiry reminders", () => {

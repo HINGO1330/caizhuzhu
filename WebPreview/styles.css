@@ -201,16 +201,20 @@ button:disabled { opacity: .42; cursor: not-allowed; }
 .card-actions .quiet { white-space: nowrap; }
 
 .meal-plan { margin: 20px 0; }
-.meal-plan .section-heading { align-items: start; }
-.meal-plan .section-heading p, .kitchen-insights .section-heading p, .expiry-panel .section-heading p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
-.meal-plan-grid { display: grid; gap: 10px; }
-.meal-slot { padding: 13px 0; border-top: 1px solid var(--line); }
+.meal-plan .section-heading { align-items: start; margin-bottom: 12px; }
+.meal-plan .section-heading p, .kitchen-insights .section-heading p { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
+.meal-plan-list { display: grid; }
+.meal-slot { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
 .meal-slot:first-child { border-top: 0; padding-top: 0; }
-.meal-slot h3, .insight-block h3 { margin: 0; font-size: 15px; }
-.meal-slot p { margin: 4px 0 10px; color: var(--muted); font-size: 12px; }
-.meal-empty { color: var(--muted); font-size: 13px; margin-bottom: 0 !important; }
-.kitchen-insights, .expiry-panel { margin: 20px 0; padding: 16px; border-radius: var(--radius-md); background: color-mix(in oklch, var(--white) 94%, var(--leaf)); }
-.expiry-panel { background: color-mix(in oklch, var(--white) 93%, var(--tomato-wash)); }
+.meal-slot:last-child { padding-bottom: 0; }
+.meal-label h3 { margin: 0; font-size: 15px; }
+.meal-label p { margin: 3px 0 0; color: var(--muted); font-size: 11px; line-height: 1.35; }
+.meal-content { min-width: 0; }
+.meal-empty { color: var(--muted); font-size: 13px; margin: 0 !important; }
+.kitchen-insights { margin: 20px 0; padding: 16px; border-radius: var(--radius-md); background: color-mix(in oklch, var(--white) 94%, var(--leaf)); }
+.expiry-panel { margin: 18px 0; padding: 0; border-radius: 0; background: transparent; }
+.expiry-panel .section-heading { align-items: baseline; margin-bottom: 6px; }
+.expiry-panel .section-heading p { display: none; }
 .recommendation-list, .expiry-list { display: grid; gap: 8px; }
 .recommendation-item, .expiry-item { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border: 0; border-top: 1px solid var(--line); background: transparent; text-align: left; color: var(--ink); }
 .recommendation-item:first-child, .expiry-item:first-child { border-top: 0; }
@@ -219,9 +223,3 @@ button:disabled { opacity: .42; cursor: not-allowed; }
 .recommendation-item b { color: var(--tomato-dark); white-space: nowrap; font-size: 13px; }
 .expiry-item span { font-size: 14px; }
 .expiry-item strong { color: var(--tomato-dark); white-space: nowrap; font-size: 13px; }
-
-@media (min-width: 620px) {
-  .meal-plan-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; }
-  .meal-slot { border-top: 0; border-left: 1px solid var(--line); padding: 0 0 0 14px; }
-  .meal-slot:first-child { border-left: 0; padding-left: 0; }
-}
