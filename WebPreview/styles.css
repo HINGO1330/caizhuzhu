@@ -212,14 +212,17 @@ button:disabled { opacity: .42; cursor: not-allowed; }
 .meal-content { min-width: 0; }
 .meal-empty { color: var(--muted); font-size: 13px; margin: 0 !important; }
 .kitchen-insights { margin: 20px 0; padding: 16px; border-radius: var(--radius-md); background: color-mix(in oklch, var(--white) 94%, var(--leaf)); }
-.expiry-panel { margin: 18px 0; padding: 0; border-radius: 0; background: transparent; }
-.expiry-panel .section-heading { align-items: baseline; margin-bottom: 6px; }
+.expiry-panel { margin: 18px 0; padding: 16px; border-radius: var(--radius-md); background: var(--tomato); color: white; }
+.expiry-panel .section-heading { align-items: baseline; margin-bottom: 10px; }
+.expiry-panel .section-heading h2, .expiry-panel .section-heading p { color: white; }
 .expiry-panel .section-heading p { display: none; }
+.expiry-panel .section-heading > span { color: white; font-size: 13px; font-weight: 700; }
 .recommendation-list, .expiry-list { display: grid; gap: 8px; }
-.recommendation-item, .expiry-item { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border: 0; border-top: 1px solid var(--line); background: transparent; text-align: left; color: var(--ink); }
-.recommendation-item:first-child, .expiry-item:first-child { border-top: 0; }
+.recommendation-item { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border: 0; border-top: 1px solid var(--line); background: transparent; text-align: left; color: var(--ink); }
+.recommendation-item:first-child { border-top: 0; }
+.expiry-item { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 12px; border-radius: var(--radius-sm); background: color-mix(in oklch, white 15%, transparent); color: white; }
 .recommendation-item strong { display: block; font-size: 15px; }
 .recommendation-item small { display: block; margin-top: 3px; color: var(--muted); }
 .recommendation-item b { color: var(--tomato-dark); white-space: nowrap; font-size: 13px; }
 .expiry-item span { font-size: 14px; }
-.expiry-item strong { color: var(--tomato-dark); white-space: nowrap; font-size: 13px; }
+.expiry-badge { padding: 5px 8px; border-radius: var(--radius-sm); background: white; color: var(--tomato-dark); white-space: nowrap; font-size: 12px; }

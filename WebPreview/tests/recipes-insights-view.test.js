@@ -23,4 +23,5 @@ test("inventory page presents expiry reminders", () => {
 
   assert.match(html, /临期提醒/);
   assert.match(html, /鸡蛋 · 2 个 · 明天到期/);
+  assert.match(html, /class="expiry-badge"/);
 });
