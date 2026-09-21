@@ -76,7 +76,13 @@ function recipeCard(recipe, inMenu = false) {
 
 export function recipeBrowser(recipes, category = "全部") {
   const title = category === "全部" ? "全部菜谱" : `全部${escapeHTML(category)}菜谱`;
-  return `<div class="modal-head"><h2 id="modal-title">${title}</h2><button type="button" class="icon-button" data-action="modal-close">×</button></div><div class="modal-body"><section class="recipe-grid">${recipes.map((recipe) => recipeCard(recipe)).join("") || `<div class="empty">还没有菜谱</div>`}</section></div>`;
+  return `<div class="modal-head"><h2 id="modal-title">${title}</h2><button type="button" class="icon-button" data-action="modal-close">×</button></div><div class="modal-body recipe-browser-body"><section class="recipe-browser-list">${recipes.map(recipeBrowserRow).join("") || `<div class="empty">还没有菜谱</div>`}</section></div>`;
+}
+
+function recipeBrowserRow(recipe) {
+  const image = (recipe.imageKeys ?? [])[0];
+  const tags = (recipe.tags ?? []).slice(0, 2);
+  return `<article class="recipe-browser-row"><button class="recipe-browser-main" data-action="recipe-open" data-id="${recipe.id}" aria-label="查看${escapeHTML(recipe.name)}"><div class="recipe-browser-photo ${image ? "skeleton" : ""}" ${image ? `data-image-key="${escapeHTML(image)}"` : ""}>${image ? "" : "🍳"}</div><span class="recipe-browser-copy"><strong>${escapeHTML(recipe.name)}</strong><small>${escapeHTML(recipe.summary || "点击查看食材和步骤")}</small>${tags.length ? `<em>${tags.map(escapeHTML).join(" · ")}</em>` : ""}</span></button><button class="recipe-browser-add" data-action="menu-add" data-id="${recipe.id}">加到今日</button></article>`;
 }
 
 export function recipeDetailView(recipe) {

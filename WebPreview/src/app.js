@@ -111,6 +111,7 @@ async function hydrateImages() {
 function openModal(content) {
   modal.innerHTML = content;
   modal.showModal();
+  void hydrateImages();
 }
 
 function closeModal() {

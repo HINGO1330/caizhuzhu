@@ -28,7 +28,7 @@ test("inventory page presents expiry reminders", () => {
 
 test("recipe browser identifies the active category instead of implying every recipe is shown", () => {
   const recipes = [
-    { id: "vegetable", name: "蒜蓉西兰花", summary: "", tags: ["素菜"], imageKeys: [] },
+    { id: "vegetable", name: "蒜蓉西兰花", summary: "", tags: ["素菜"], imageKeys: ["./assets/recipes/vegetable.png"] },
     { id: "meat", name: "可乐鸡翅", summary: "", tags: ["荤菜"], imageKeys: [] },
   ];
   const filtered = recipesForCategory(recipes, "素菜");
@@ -37,6 +37,11 @@ test("recipe browser identifies the active category instead of implying every re
   assert.deepEqual(filtered.map((recipe) => recipe.id), ["vegetable"]);
   assert.match(html, /全部素菜菜谱/);
   assert.match(html, /蒜蓉西兰花/);
+  assert.match(html, /recipe-browser-list/);
+  assert.match(html, /recipe-browser-row/);
+  assert.match(html, /recipe-browser-photo/);
+  assert.match(html, /data-image-key="\.\/assets\/recipes\/vegetable\.png"/);
   assert.doesNotMatch(html, /可乐鸡翅/);
+  assert.doesNotMatch(html, /class="recipe-card"/);
   assert.doesNotMatch(html, /全部菜谱<\/h2>/);
 });

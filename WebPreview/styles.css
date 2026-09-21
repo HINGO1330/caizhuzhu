@@ -101,6 +101,17 @@ dialog::backdrop { background: rgba(45, 29, 20, .44); }
 .modal-head { position: sticky; top: 0; z-index: 2; display: flex; justify-content: space-between; align-items: center; padding: 18px 20px; background: rgba(255,250,241,.96); border-bottom: 1px solid var(--line); }
 .modal-head h2 { margin: 0; font-size: 21px; }
 .modal-body { padding: 18px 20px 24px; }
+.recipe-browser-body { padding: 8px 20px 18px; }
+.recipe-browser-list { display: grid; }
+.recipe-browser-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+.recipe-browser-row:last-child { border-bottom: 0; }
+.recipe-browser-main { min-width: 0; min-height: 76px; padding: 0; border: 0; background: transparent; color: var(--ink); display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; text-align: left; align-items: center; }
+.recipe-browser-photo { width: 76px; height: 76px; display: grid; place-items: center; overflow: hidden; border-radius: var(--radius-sm); background: var(--cream); background-position: center; background-size: cover; color: var(--tomato-dark); font-size: 24px; }
+.recipe-browser-copy { min-width: 0; display: grid; gap: 4px; }
+.recipe-browser-copy strong { overflow: hidden; font-size: 16px; line-height: 1.28; text-overflow: ellipsis; white-space: nowrap; }
+.recipe-browser-copy small { overflow: hidden; color: var(--muted); font-size: 12px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.recipe-browser-copy em { color: var(--tomato-dark); font-size: 12px; font-style: normal; }
+.recipe-browser-add { min-height: 34px; border: 1px solid var(--line); border-radius: 999px; padding: 6px 10px; background: var(--white); color: var(--tomato-dark); font-size: 12px; font-weight: 750; white-space: nowrap; }
 .form-grid { display: grid; gap: 14px; }
 .field { display: grid; gap: 7px; color: #59463d; font-size: 13px; font-weight: 700; }
 .field input, .field textarea, .field select { width: 100%; min-height: 44px; border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; background: var(--white); color: var(--ink); transition: border-color .18s var(--ease-out), box-shadow .18s var(--ease-out); }
@@ -194,6 +205,7 @@ button:disabled { opacity: .42; cursor: not-allowed; }
 }
 
 .primary:active, .secondary:active, .quiet:active, .danger:active, .icon-button:active, .nav-item:active, .card-action:active { transform: translateY(1px) scale(.98); }
+.recipe-browser-main:active, .recipe-browser-add:active { transform: scale(.98); }
 .field input:hover, .field textarea:hover, .field select:hover { border-color: color-mix(in oklch, var(--line) 55%, var(--tomato)); }
 .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--tomato); box-shadow: 0 0 0 3px color-mix(in oklch, var(--tomato) 18%, transparent); outline: none; }
 .recipe-card:focus-visible, .action-tile:focus-visible, .category-chip:focus-visible { outline: 3px solid color-mix(in oklch, var(--tomato) 35%, transparent); outline-offset: 3px; }
