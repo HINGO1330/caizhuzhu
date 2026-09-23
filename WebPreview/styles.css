@@ -77,6 +77,12 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .step-preview li { margin: 5px 0; line-height: 1.5; }
 .field-label-row { display:flex; align-items:center; justify-content:space-between; font-weight:700; }
 .browse-recipes { width:100%; margin-top:14px; }
+.recipe-search { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; }
+.recipe-search input { min-width: 0; }
+.recipe-discovery-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 0 14px; }
+.recipe-discovery-actions > span { flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere; color: var(--muted); font-size: 12px; line-height: 1.5; }
+.recipe-discovery-actions .quiet { flex-shrink: 0; font-size: 13px; background: var(--white); }
+.search-clear { border: 0; background: transparent; color: var(--tomato-dark); padding: 4px 8px; font-weight: 700; text-decoration: underline; }
 .inventory-actions { display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-top:14px; }
 .event-actions { display:flex; gap:6px; align-items:center; }
 .archived-events { margin-top:18px; border:1px solid var(--line); border-radius:var(--radius-md); background:rgba(255,255,255,.5); }

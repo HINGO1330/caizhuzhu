@@ -8,6 +8,7 @@ import { installInstructionsFor } from "./install.js";
 import { exportState, importState, loadState, saveState } from "./storage.js";
 import { reduceState } from "./state.js";
 import { mergeEverydayRecipes } from "./recipe-pack.js";
+import { pickRecipeSuggestion } from "./recipe-discovery.js";
 import {
   appView,
   cookingView,
@@ -22,6 +23,7 @@ import {
   menuServingPicker,
   recipeDetailView,
   recipeBrowser,
+  recipeSuggestion,
   recipeEditor,
   recipesForCategory,
   recipesView,
@@ -47,7 +49,7 @@ const savedState = loadState();
 const loadedState = mergeEverydayRecipes(savedState);
 let state = pruneExpiredArchivedEvents(loadedState);
 if (state !== savedState) saveState(localStorage, state);
-let ui = { tab: "recipes", recipeId: null, cooking: null, selectedCategory: "全部" };
+let ui = { tab: "recipes", recipeId: null, cooking: null, selectedCategory: "全部", recipeQuery: "", suggestedRecipeId: null };
 let pendingShoppingIds = [];
 let suggestedSteps = [];
 const cloud = createCloudClient(cloudConfig);
@@ -88,7 +90,7 @@ function render() {
     content = recipe ? cookingView(recipe, ui.cooking.index) : recipesView(state);
   } else if (ui.tab === "recipes") {
     const recipe = state.recipes.find((item) => item.id === ui.recipeId);
-    content = recipe ? recipeDetailView(recipe) : recipesView(state, {
+    content = recipe ? recipeDetailView(recipe) : recipesView({ ...state, selectedCategory: ui.selectedCategory, recipeQuery: ui.recipeQuery }, {
       recommendations: inventoryRecipeRecommendations(state.recipes, state.inventoryEvents),
     });
   } else if (ui.tab === "shopping") {
@@ -154,6 +156,19 @@ document.addEventListener("click", (event) => {
   const { action, id, tab } = button.dataset;
   if (action === "tab") { ui = { ...ui, tab, recipeId: null, cooking: null }; render(); }
   if (action === "recipe-category") { ui.selectedCategory = button.dataset.category; state = { ...state, selectedCategory: ui.selectedCategory }; render(); }
+  if (action === "recipe-search-clear") { ui.recipeQuery = ""; render(); document.querySelector("#recipe-query")?.focus(); }
+  if (action === "recipe-surprise") {
+    const matches = recipesForCategory(state.recipes, ui.selectedCategory, ui.recipeQuery);
+    const excludedIds = (state.todayMenu ?? []).map(entry => entry.recipeId);
+    const stockedIds = inventoryRecipeRecommendations(matches, state.inventoryEvents).map(item => item.recipe.id);
+    const recipe = pickRecipeSuggestion(matches, { excludedIds, stockedIds, previousId: ui.suggestedRecipeId });
+    if (recipe) {
+      ui.suggestedRecipeId = recipe.id;
+      openModal(recipeSuggestion(recipe, { stocked: stockedIds.includes(recipe.id), hasAlternative: matches.filter(item => !excludedIds.includes(item.id)).length > 1 }));
+    } else {
+      notify(matches.length ? "这些菜都已在今日菜单里，试试其他分类" : "没有符合条件的菜谱，试试清除搜索或切换分类");
+    }
+  }
   if (action === "menu-add") {
     const recipe = state.recipes.find((item) => item.id === id);
     if (recipe) openModal(menuServingPicker(recipe));
@@ -162,7 +177,7 @@ document.addEventListener("click", (event) => {
   if (action === "recipe-new") openModal(recipeEditor({}, state.customTags ?? []));
   if (action === "recipe-browse-all") {
     const category = ui.selectedCategory ?? "全部";
-    openModal(recipeBrowser(recipesForCategory(state.recipes, category), category));
+    openModal(recipeBrowser(recipesForCategory(state.recipes, category, ui.recipeQuery), category, ui.recipeQuery));
   }
   if (action === "ingredient-add") {
     const list = document.querySelector("#ingredient-list");
@@ -271,6 +286,13 @@ document.addEventListener("click", (event) => {
 });
 
 document.addEventListener("submit", async (event) => {
+  if (event.target.id === "recipe-search-form") {
+    event.preventDefault();
+    ui.recipeQuery = String(new FormData(event.target).get("query") ?? "").trim();
+    render();
+    document.querySelector("#recipe-query")?.focus();
+    return;
+  }
   if (event.target.id === "cloud-login-form") {
     event.preventDefault();
     const form = new FormData(event.target);
