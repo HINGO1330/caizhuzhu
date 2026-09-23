@@ -77,6 +77,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-
 .step-preview li { margin: 5px 0; line-height: 1.5; }
 .field-label-row { display:flex; align-items:center; justify-content:space-between; font-weight:700; }
 .browse-recipes { width:100%; margin-top:14px; }
+.shopping-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.shopping-tools button { flex: 1 1 145px; white-space: nowrap; }
+.shopping-share-field { margin-top: 18px; }
+.shopping-share-field textarea { line-height: 1.9; font-size: 15px; }
 .recipe-search { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 8px; }
 .recipe-search input { min-width: 0; }
 .recipe-discovery-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; margin: 10px 0 14px; }

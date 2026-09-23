@@ -9,6 +9,7 @@ import { exportState, importState, loadState, saveState } from "./storage.js";
 import { reduceState } from "./state.js";
 import { mergeEverydayRecipes } from "./recipe-pack.js";
 import { pickRecipeSuggestion } from "./recipe-discovery.js";
+import { buildShoppingShare, copyShoppingText } from "./shopping-share.js";
 import {
   appView,
   cookingView,
@@ -30,6 +31,7 @@ import {
   settingsView,
   stepPreview,
   shoppingView,
+  shoppingSharePreview,
   systemSimulatorView,
 } from "./views.js";
 
@@ -150,6 +152,27 @@ function notify(message) {
   window.setTimeout(() => toast.classList.remove("show"), 1800);
 }
 
+async function copyPendingShopping() {
+  const field = modal.querySelector("#shopping-share-text");
+  const status = modal.querySelector("#shopping-share-status");
+  const button = modal.querySelector('[data-action="shopping-share-copy"]');
+  if (!field || !status || !button || button.disabled) return;
+  button.disabled = true;
+  button.textContent = "复制中…";
+  const copied = await copyShoppingText(field.value, navigator.clipboard);
+  if (!field.isConnected) return;
+  button.disabled = false;
+  button.textContent = "复制清单";
+  if (copied) {
+    status.textContent = "已复制，去微信或其他聊天窗口粘贴即可。";
+  } else {
+    field.focus();
+    field.select();
+    field.setSelectionRange(0, field.value.length);
+    status.textContent = "自动复制未成功，文字已选中。请长按文字复制，或按 Ctrl+C / ⌘C。";
+  }
+}
+
 document.addEventListener("click", (event) => {
   const button = event.target.closest("[data-action]");
   if (!button) return;
@@ -250,6 +273,16 @@ document.addEventListener("click", (event) => {
   }
   if (action === "shopping-stock-many") {
     openModal(inventoryBatchStockEditor(inventoryStockPrefills(state.shoppingItems.filter((item) => !item.checked))));
+  }
+  if (action === "shopping-share") {
+    const share = buildShoppingShare(state.shoppingItems);
+    if (share.count) openModal(shoppingSharePreview(share));
+    else notify("没有待采购的食材");
+  }
+  if (action === "shopping-share-copy") void copyPendingShopping();
+  if (action === "shopping-share-select") {
+    const field = modal.querySelector("#shopping-share-text");
+    if (field) { field.focus(); field.select(); field.setSelectionRange(0, field.value.length); }
   }
   if (action === "shopping-adjust-group") {
     const first = state.shoppingItems.find((item) => item.id === button.dataset.ids.split(",")[0]);

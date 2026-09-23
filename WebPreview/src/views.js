@@ -1,5 +1,6 @@
 import { recipePreview } from "./domain.js";
 import { filterRecipeCatalog } from "./recipe-discovery.js";
+import { buildShoppingShare } from "./shopping-share.js";
 
 const escapeHTML = (value) => String(value ?? "")
   .replaceAll("&", "&amp;")
@@ -156,12 +157,17 @@ export function shoppingView(state) {
   }
   const displayItems = [...groups.values()];
   const pendingItems = displayItems.filter((item) => !item.checked);
+  const share = buildShoppingShare(state.shoppingItems);
   return `<main class="screen"><span class="eyebrow">买齐再开火</span><h2 class="screen-title">采购清单</h2><p class="screen-lede">今日菜单会自动生成采购项，也可以随手补上一项。</p>
     <form id="shopping-form" class="inline-form"><input name="name" required placeholder="添加采购项"><input name="quantity" type="number" step="0.1" min="0.1" value="1" aria-label="数量"><input name="unit" placeholder="单位" aria-label="单位"><button class="primary">添加</button></form>
     <div class="section-heading"><h2>待采购</h2><span>${pendingItems.length} 项</span></div>
-    ${pendingItems.length ? `<button class="secondary" style="width:100%;margin-bottom:12px" data-action="shopping-stock-many">批量入库</button>` : ""}
+    <div class="shopping-tools">${pendingItems.length ? `<button class="secondary" data-action="shopping-stock-many">批量入库</button>` : ""}<button class="quiet" data-action="shopping-share" ${share.count ? "" : "disabled"}>复制待采购${share.count ? `（${share.count}）` : ""}</button></div>
     <section class="check-list">${displayItems.length ? displayItems.map((item) => `<div class="check-row ${item.checked ? "done" : ""}"><button class="check-button" data-action="shopping-toggle-group" data-ids="${item.ids.join(",")}" aria-label="${item.checked ? "取消勾选" : "勾选"}">${item.checked ? "✓" : ""}</button><span>${escapeHTML(item.name)}</span><div class="quantity-controls"><button data-action="shopping-adjust-group" data-ids="${item.ids.join(",")}" data-delta="-1">−</button><strong>${item.quantity} ${escapeHTML(item.unit)}</strong><button data-action="shopping-adjust-group" data-ids="${item.ids.join(",")}" data-delta="1">＋</button></div><button class="row-delete" data-action="shopping-delete-group" data-ids="${item.ids.join(",")}" aria-label="删除">×</button></div>`).join("") : `<div class="empty">清单还是空的。请先从菜谱加入今日菜单，或手动添加采购项。</div>`}</section>
   </main>`;
+}
+
+export function shoppingSharePreview(share) {
+  return `<div class="modal-head"><h2 id="modal-title">带上这份采购清单</h2><button type="button" class="icon-button" data-action="modal-close" aria-label="关闭">×</button></div><div class="modal-body"><p class="screen-lede">只列出还没买的食材，同名同单位已合并。复制后可发给家人。</p><label class="field shopping-share-field" for="shopping-share-text">待采购 · ${share.count} 项<textarea id="shopping-share-text" readonly rows="${Math.min(12, Math.max(5, share.count + 2))}" spellcheck="false">${escapeHTML(share.text)}</textarea></label><p id="shopping-share-status" class="form-note" role="status" aria-live="polite">这是打开时的清单；采购有变化时，请重新打开。</p><div class="modal-actions"><button class="quiet" data-action="shopping-share-select">全选文字</button><button class="primary" data-action="shopping-share-copy" ${share.count ? "" : "disabled"}>复制清单</button></div></div>`;
 }
 
 export function recipePicker(recipes) {
